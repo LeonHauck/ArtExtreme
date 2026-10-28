@@ -20,8 +20,8 @@ e reserva o horário com o **Mike**. Sem ficar perguntando "quanto fica?" no dir
 
 <br>
 
-[**▶ Demo no computador**](docs/media/ArtExtreme-demo-computador.mp4) &nbsp;•&nbsp;
-[**📱 Demo no celular**](docs/media/ArtExtreme-demo-celular.mp4) &nbsp;•&nbsp;
+[**▶ Demo no computador**](#-no-computador) &nbsp;•&nbsp;
+[**📱 Demo no celular**](#-no-celular) &nbsp;•&nbsp;
 [**✦ @tattooartextremee**](https://instagram.com/tattooartextremee)
 
 </div>
@@ -36,7 +36,27 @@ e reserva o horário com o **Mike**. Sem ficar perguntando "quanto fica?" no dir
   <sub>Marca a coxa pela frente, vira de costas, marca a posterior e gira o corpo. O valor soma sozinho.</sub>
 </div>
 
-> 🎥 Os vídeos completos estão em [`docs/media`](docs/media): **computador** (2min, tour com painel do artista) e **celular** (1min, do simulador ao "instalar app").
+> 🎥 Quer ver tudo? Os vídeos completos estão logo ali em [**Demos completas**](#-demos-completas).
+
+<br>
+
+## 🎥 Demos completas
+
+### 💻 No computador
+
+Tour completo: home, simulador 3D, agendamento e o **painel do Mike** (agenda, preços e configurações). ~2 min.
+
+<!-- VIDEO-COMPUTADOR: o player do GitHub entra aqui -->
+
+⬇️ [Baixar o vídeo (MP4, 5,6 MB)](https://github.com/LeonHauck/ArtExtreme/raw/main/docs/media/ArtExtreme-demo-computador.mp4)
+
+### 📱 No celular
+
+Como o cliente usa: simulador, valor fixo na tela, agendamento e **instalar como app**. ~1 min.
+
+<!-- VIDEO-CELULAR: o player do GitHub entra aqui -->
+
+⬇️ [Baixar o vídeo (MP4, 4,1 MB)](https://github.com/LeonHauck/ArtExtreme/raw/main/docs/media/ArtExtreme-demo-celular.mp4)
 
 <br>
 
