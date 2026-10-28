@@ -48,13 +48,14 @@ Tour completo: home, simulador 3D, agendamento e o **painel do Mike** (agenda, p
 
 <!-- VIDEO-COMPUTADOR: o player do GitHub entra aqui -->
 
+https://github.com/user-attachments/assets/8ffdfb22-60cb-4827-87fd-f620d36aefb8
+
 ⬇️ [Baixar o vídeo (MP4, 5,6 MB)](https://github.com/LeonHauck/ArtExtreme/raw/main/docs/media/ArtExtreme-demo-computador.mp4)
+
 
 ### 📱 No celular
 
 Como o cliente usa: simulador, valor fixo na tela, agendamento e **instalar como app**. ~1 min.
-
-<!-- VIDEO-CELULAR: o player do GitHub entra aqui -->
 
 ⬇️ [Baixar o vídeo (MP4, 4,1 MB)](https://github.com/LeonHauck/ArtExtreme/raw/main/docs/media/ArtExtreme-demo-celular.mp4)
 
