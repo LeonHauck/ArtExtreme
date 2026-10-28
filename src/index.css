@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+
+/*
+ * Identidade ArtExtreme: preto profundo + neon de rave.
+ * Roxo é a cor principal (marca/ações), laranja e amarelo vêm do logo
+ * e entram como destaque e em gradientes.
+ */
+@theme {
+  --color-ink: #08070b;
+  --color-coal: #0f0d14;
+  --color-ash: #17141e;
+  --color-smoke: #241f2e;
+  --color-steel: #3a3346;
+  --color-bone: #f3eefa;
+  --color-mute: #9a93a8;
+  --color-violet: #be38f3;
+  --color-violet-light: #d16bff;
+  --color-violet-dark: #5e1a7e;
+  --color-pink: #ff4fd8;
+  --color-flame: #ff8a1f;
+  --color-sun: #ffd23f;
+
+  --font-marker: 'Permanent Marker', 'Comic Sans MS', cursive;
+  --font-display: 'Bebas Neue', 'Oswald', sans-serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-glow: glow 6s ease-in-out infinite alternate;
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes glow {
+    from {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+  }
+}
+
+@layer base {
+  html {
+    overflow-x: clip;
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-ink text-bone font-sans antialiased;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* Granulado sutil — textura de impressão/pele */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    @apply bg-violet text-bone;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-violet;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 font-display text-lg tracking-wider uppercase transition duration-200 select-none disabled:pointer-events-none disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply bg-violet text-bone shadow-[0_0_0_1px_var(--color-violet-light)_inset,0_10px_32px_-10px_var(--color-violet)] hover:bg-violet-light active:scale-[0.98];
+  }
+  /* CTA principal com o gradiente da marca */
+  .btn-rave {
+    @apply text-ink shadow-[0_10px_36px_-10px_var(--color-flame)] hover:brightness-110 active:scale-[0.98];
+    background-image: linear-gradient(100deg, var(--color-violet-light), var(--color-flame) 55%, var(--color-sun));
+  }
+  .btn-outline {
+    @apply border border-bone/25 text-bone hover:border-violet-light hover:bg-violet/10 active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply px-3 py-2 text-mute hover:text-bone;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-base;
+  }
+
+  .card {
+    @apply rounded-lg border border-bone/10 bg-coal/80 backdrop-blur-sm;
+  }
+
+  .label {
+    @apply mb-1.5 block font-display text-sm tracking-[0.18em] text-mute uppercase;
+  }
+
+  .input {
+    @apply w-full rounded-md border border-bone/15 bg-ash px-3.5 py-2.5 text-bone placeholder:text-mute/60 transition focus:border-violet focus:outline-none;
+  }
+
+  .chip {
+    @apply cursor-pointer rounded-full border border-bone/15 px-3.5 py-1.5 text-sm text-bone/80 transition hover:border-bone/40;
+  }
+  .chip[data-active='true'] {
+    @apply border-violet bg-violet/20 text-bone shadow-[0_0_18px_-6px_var(--color-violet)];
+  }
+
+  .eyebrow {
+    @apply font-display text-sm tracking-[0.35em] text-flame uppercase;
+  }
+}
+
+/* Texto em gradiente roxo → laranja → amarelo */
+@utility text-rave {
+  background-image: linear-gradient(100deg, var(--color-violet-light), var(--color-pink) 35%, var(--color-flame) 70%, var(--color-sun));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-rave {
+  background-image: linear-gradient(100deg, var(--color-violet), var(--color-pink) 35%, var(--color-flame) 70%, var(--color-sun));
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Range slider estilizado */
+input[type='range'].range {
+  @apply w-full cursor-pointer appearance-none bg-transparent;
+}
+input[type='range'].range::-webkit-slider-runnable-track {
+  @apply h-1.5 rounded-full;
+  background: linear-gradient(90deg, var(--color-violet), var(--color-flame), var(--color-sun));
+}
+input[type='range'].range::-moz-range-track {
+  @apply h-1.5 rounded-full;
+  background: linear-gradient(90deg, var(--color-violet), var(--color-flame), var(--color-sun));
+}
+input[type='range'].range::-webkit-slider-thumb {
+  @apply -mt-[7px] h-5 w-5 appearance-none rounded-full border-2 border-ink bg-bone shadow-[0_0_14px_var(--color-violet)];
+}
+input[type='range'].range::-moz-range-thumb {
+  @apply h-5 w-5 rounded-full border-2 border-ink bg-bone;
+}
