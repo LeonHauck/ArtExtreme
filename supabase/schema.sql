@@ -170,6 +170,40 @@ drop policy if exists "admin apaga fotos" on storage.objects;
 create policy "admin apaga fotos" on storage.objects
   for delete to authenticated using (bucket_id = 'portfolio' and public.is_admin());
 
+-- ─── Permissões da API ──────────────────────────────────────────────────
+-- O projeto foi criado com "Automatically expose new tables" DESLIGADO,
+-- então cada acesso é liberado aqui, explicitamente. As regras (RLS) acima
+-- continuam decidindo QUAIS linhas cada um pode ver ou alterar.
+grant usage on schema public to anon, authenticated;
+
+grant select                         on public.studio_settings to anon, authenticated;
+grant insert, update                 on public.studio_settings to authenticated;
+
+grant insert                         on public.bookings        to anon, authenticated;
+grant select, update, delete         on public.bookings        to authenticated;
+
+grant select                         on public.portfolio_items to anon, authenticated;
+grant insert, update, delete         on public.portfolio_items to authenticated;
+
+grant select                         on public.admins          to authenticated;
+
+grant execute on function public.is_admin()                to anon, authenticated;
+grant execute on function public.busy_slots(date, date)    to anon, authenticated;
+
+-- ─── Tempo real ─────────────────────────────────────────────────────────
+-- Faz a agenda do painel atualizar sozinha quando chega um pedido novo.
+-- (O Realtime respeita o RLS: só o admin recebe os pedidos.)
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1 from pg_publication_tables
+       where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'bookings'
+     ) then
+    alter publication supabase_realtime add table public.bookings;
+  end if;
+end $$;
+
 -- ═══════════════════════════════════════════════════════════════════════
 --  Promover uma conta a administrador (rode depois de criar o usuário em
 --  Authentication → Users). Troque o e-mail e rode só este trecho:

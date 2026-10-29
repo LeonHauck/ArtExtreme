@@ -1,6 +1,13 @@
 import type { Booking, ScheduleConfig } from '@/types'
 import { parseISODate, toISODate } from './format'
 
+/** Um horário ocupado: só o necessário para montar a agenda, sem dados do cliente. */
+export interface BusySlot {
+  date: string
+  time: string
+  hours: number
+}
+
 export const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number)
   return h * 60 + m
@@ -11,6 +18,10 @@ export const fromMinutes = (min: number) =>
 
 /** Agendamentos que ainda ocupam a agenda. */
 export const isActive = (b: Booking) => b.status === 'pending' || b.status === 'confirmed'
+
+/** Converte agendamentos (modo local) em horários ocupados. */
+export const busyFromBookings = (bookings: Booking[]): BusySlot[] =>
+  bookings.filter(isActive).map((b) => ({ date: b.date, time: b.time, hours: b.estimate.hours }))
 
 /** O estúdio atende nesta data? (dia da semana liberado e data não bloqueada) */
 export function isOpenDay(schedule: ScheduleConfig, iso: string): boolean {
@@ -32,15 +43,10 @@ export function bookableDates(schedule: ScheduleConfig, now = new Date()): strin
 
 /**
  * Horários de início livres em uma data, para uma sessão de `hours` horas.
- * A sessão precisa terminar até o fechamento e não pode sobrepor outro agendamento ativo.
+ * A sessão precisa terminar até o fechamento e não pode sobrepor um horário ocupado.
  * Sessões maiores que o expediente só podem começar na abertura.
  */
-export function availableSlots(
-  schedule: ScheduleConfig,
-  bookings: Booking[],
-  iso: string,
-  hours: number,
-): string[] {
+export function availableSlots(schedule: ScheduleConfig, busy: BusySlot[], iso: string, hours: number): string[] {
   if (!isOpenDay(schedule, iso)) return []
 
   const open = toMinutes(schedule.open)
@@ -48,17 +54,17 @@ export function availableSlots(
   const duration = Math.round(hours * 60)
   const lastStart = Math.max(open, close - duration)
 
-  const busy = bookings
-    .filter((b) => b.date === iso && isActive(b))
+  const taken = busy
+    .filter((b) => b.date === iso)
     .map((b) => {
       const start = toMinutes(b.time)
-      return [start, start + Math.round(b.estimate.hours * 60)] as const
+      return [start, start + Math.round(b.hours * 60)] as const
     })
 
   const slots: string[] = []
   for (let t = open; t <= lastStart; t += schedule.stepMinutes) {
     const end = t + duration
-    const overlaps = busy.some(([s, e]) => t < e && end > s)
+    const overlaps = taken.some(([s, e]) => t < e && end > s)
     if (!overlaps) slots.push(fromMinutes(t))
   }
   return slots

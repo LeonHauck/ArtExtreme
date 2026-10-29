@@ -143,7 +143,7 @@ export const useStudio = create<StudioState>()(
     }),
     {
       name: 'artextreme-studio',
-      version: 3,
+      version: 4,
       migrate: (persisted, version) => {
         const state = persisted as StudioState
         if (version < 2) {
@@ -157,6 +157,10 @@ export const useStudio = create<StudioState>()(
           state.pricing = { ...state.pricing, areas: mergeAreas(state.pricing.areas) }
           state.draft = emptyDraft
           state.bookings = (state.bookings ?? []).map(migrateBooking)
+        }
+        if (version < 4) {
+          // v4: chave Pix e outros campos novos do estúdio
+          state.studio = { ...defaultStudio, ...state.studio }
         }
         return state
       },

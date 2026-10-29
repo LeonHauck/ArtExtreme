@@ -6,7 +6,12 @@ Passo a passo para ligar o app ao Supabase (banco, login do artista e fotos do p
 
 1. Em [supabase.com/dashboard](https://supabase.com/dashboard), clique em **New project**.
 2. Nome: `artextreme` · Região: **South America (São Paulo)**.
-3. Crie uma senha forte para o banco e guarde num gerenciador de senhas (não vai no código).
+3. **Database password**: use "Generate a password" e guarde num gerenciador de senhas (o app não usa essa senha).
+4. **GitHub (optional)**: deixe em branco (o schema é aplicado pelo SQL Editor, não por migrations).
+5. **Security**:
+   - ✅ **Enable Data API** (o app usa)
+   - ⬜ **Automatically expose new tables**: desligado; o `schema.sql` libera cada tabela explicitamente
+   - ✅ **Enable automatic RLS** (camada extra de segurança)
 
 ## 2. Criar as tabelas e as regras de segurança
 
@@ -46,11 +51,26 @@ on conflict do nothing;
 
 ## 6. E-mails de "esqueci minha senha" (antes de ir para produção)
 
-O serviço de e-mail padrão do Supabase só envia para membros da equipe do projeto e tem limite baixo. Para o artista receber o link de redefinição:
+O serviço de e-mail padrão do Supabase só envia para membros da equipe do projeto e tem limite baixo. O app usa o **Gmail do próprio estúdio** como remetente (SMTP do Google com senha de app):
 
-1. Crie uma conta grátis num serviço de envio (ex.: [Resend](https://resend.com)).
-2. **Authentication → Emails → SMTP Settings**: ative o SMTP personalizado com os dados do serviço.
-3. Em **Emails → Reset Password**, deixe o texto em português.
+**Na conta Google do estúdio**
+1. [myaccount.google.com/security](https://myaccount.google.com/security) → ative a **Verificação em duas etapas**.
+2. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) → nome `ArtExtreme Supabase` → **Criar** → copie o código de 16 letras.
+
+**No Supabase → Authentication → Emails → SMTP Settings** → **Enable custom SMTP**
+
+| Campo | Valor |
+| :--- | :--- |
+| Sender email | o Gmail do estúdio |
+| Sender name | `ArtExtreme Tattoo Studio` |
+| Host | `smtp.gmail.com` |
+| Port | `465` |
+| Username | o Gmail do estúdio |
+| Password | a senha de app (16 letras, sem espaços) |
+
+**E-mail em português**: em **Emails → Templates → Reset Password**, assunto `Crie sua nova senha · ArtExtreme` e corpo com o conteúdo de [`email-reset-password.html`](email-reset-password.html).
+
+> 🔐 A senha de app fica só no painel do Supabase. Se ela vazar, basta revogá-la em myaccount.google.com/apppasswords.
 
 ## O que cada um pode fazer
 

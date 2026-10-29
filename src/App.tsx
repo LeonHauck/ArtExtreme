@@ -1,5 +1,7 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Link, Route, Routes } from 'react-router'
+import { initAuth } from '@/store/auth'
+import { loadRemoteSettings, startSettingsAutosave } from '@/lib/settingsSync'
 import { SiteLayout } from '@/components/layout/SiteLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import Home from '@/pages/Home'
@@ -10,6 +12,7 @@ const Booking = lazy(() => import('@/pages/Booking'))
 const Agenda = lazy(() => import('@/pages/admin/Agenda'))
 const Pricing = lazy(() => import('@/pages/admin/Pricing'))
 const Settings = lazy(() => import('@/pages/admin/Settings'))
+const ResetPassword = lazy(() => import('@/pages/admin/ResetPassword'))
 
 function PageLoader() {
   return (
@@ -32,6 +35,13 @@ function NotFound() {
 }
 
 export default function App() {
+  // Sessão do artista + preços/configurações do banco (no modo Supabase)
+  useEffect(() => {
+    initAuth()
+    void loadRemoteSettings()
+    return startSettingsAutosave()
+  }, [])
+
   return (
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
@@ -42,6 +52,8 @@ export default function App() {
             <Route path="agendar" element={<Booking />} />
             <Route path="*" element={<NotFound />} />
           </Route>
+          {/* Fora do layout do painel: quem chega pelo link do e-mail ainda não está logado */}
+          <Route path="admin/nova-senha" element={<ResetPassword />} />
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Agenda />} />
             <Route path="precos" element={<Pricing />} />

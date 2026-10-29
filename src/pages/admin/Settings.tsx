@@ -2,6 +2,9 @@ import { useRef, useState, type ReactNode } from 'react'
 import { Download, KeyRound, Upload, X } from 'lucide-react'
 import { useStudio } from '@/store/studio'
 import { NumberField } from '@/components/ui/NumberField'
+import { PasswordInput } from '@/components/admin/AuthCard'
+import { updatePassword, useAuth } from '@/store/auth'
+import { isRemote } from '@/lib/supabase'
 import { formatDateShort, onlyDigits, toISODate } from '@/lib/format'
 import type { StudioInfo } from '@/types'
 
@@ -23,6 +26,7 @@ const STUDIO_FIELDS: { key: keyof StudioInfo; label: string; placeholder?: strin
   { key: 'email', label: 'E-mail' },
   { key: 'whatsapp', label: 'WhatsApp (com DDI e DDD)', placeholder: '5511999999999', hint: 'Só números. Ex.: 55 + DDD + número.' },
   { key: 'instagram', label: 'Instagram', placeholder: 'artextreme' },
+  { key: 'pixKey', label: 'Chave Pix (sinal)', placeholder: 'CPF, e-mail, telefone ou chave aleatória', hint: 'Vai na mensagem de pedir sinal.' },
   { key: 'address', label: 'Endereço' },
   { key: 'city', label: 'Cidade / UF' },
 ]
@@ -39,7 +43,7 @@ function StudioPanel() {
             <input
               className="input"
               placeholder={f.placeholder}
-              value={studio[f.key]}
+              value={studio[f.key] ?? ''}
               inputMode={f.key === 'whatsapp' ? 'numeric' : undefined}
               onChange={(e) => {
                 let v = e.target.value
@@ -183,6 +187,47 @@ function SecurityPanel() {
   )
 }
 
+/** Modo Supabase: e-mail da conta e troca de senha. */
+function AccountPanel() {
+  const email = useAuth((s) => s.session?.user.email)
+  const [password, setPassword] = useState('')
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [busy, setBusy] = useState(false)
+  const valid = password.length >= 8 && /[a-zA-Z]/.test(password) && /\d/.test(password)
+
+  const save = async () => {
+    setBusy(true)
+    const err = await updatePassword(password)
+    setBusy(false)
+    setMsg(err ? { ok: false, text: err } : { ok: true, text: 'Senha alterada.' })
+    if (!err) setPassword('')
+  }
+
+  return (
+    <Panel title="Conta" description={`Você entra no painel com ${email ?? 'seu e-mail'}.`}>
+      <span className="label">Trocar senha</span>
+      <div className="flex gap-2">
+        <div className="max-w-64 flex-1">
+          <PasswordInput
+            id="new-password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(v) => {
+              setPassword(v)
+              setMsg(null)
+            }}
+          />
+        </div>
+        <button type="button" className="btn btn-outline btn-sm" disabled={!valid || busy} onClick={save}>
+          <KeyRound size={15} /> Salvar
+        </button>
+      </div>
+      <p className="mt-2 text-xs text-mute">Mínimo de 8 caracteres, com letras e números.</p>
+      {msg && <p className={`mt-2 text-sm ${msg.ok ? 'text-emerald-400' : 'text-pink'}`}>{msg.text}</p>}
+    </Panel>
+  )
+}
+
 function BackupPanel() {
   const exportData = useStudio((s) => s.exportData)
   const importData = useStudio((s) => s.importData)
@@ -244,7 +289,7 @@ export default function Settings() {
       <StudioPanel />
       <SchedulePanel />
       <div className="grid gap-6 lg:grid-cols-2">
-        <SecurityPanel />
+        {isRemote ? <AccountPanel /> : <SecurityPanel />}
         <BackupPanel />
       </div>
     </div>

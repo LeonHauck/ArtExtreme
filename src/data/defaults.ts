@@ -70,6 +70,7 @@ export const defaultStudio: StudioInfo = {
   email: 'artextremtv@gmail.com',
   whatsapp: '5532991809867',
   instagram: 'tattooartextremee',
+  pixKey: '32991809867',
   address: 'Av. Simeão de Faria, 440 · Bloco A, Sala 203',
   city: 'Juiz de Fora - MG',
 }

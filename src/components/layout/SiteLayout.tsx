@@ -168,10 +168,15 @@ function Footer() {
 }
 
 export function SiteLayout() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   useEffect(() => {
+    // Links com âncora (ex.: /#cuidados, da mensagem pós-sessão) rolam até a seção
+    if (hash) {
+      const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 150)
+      return () => clearTimeout(t)
+    }
     window.scrollTo(0, 0)
-  }, [pathname])
+  }, [pathname, hash])
 
   return (
     <div className="flex min-h-dvh flex-col">

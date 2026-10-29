@@ -9,6 +9,7 @@
 ![Three.js](https://img.shields.io/badge/Three.js-08070b?style=for-the-badge&logo=threedotjs&logoColor=FF4FD8)
 ![Tailwind](https://img.shields.io/badge/Tailwind_4-08070b?style=for-the-badge&logo=tailwindcss&logoColor=FF8A1F)
 ![Vite](https://img.shields.io/badge/Vite_8-08070b?style=for-the-badge&logo=vite&logoColor=FFD23F)
+![Supabase](https://img.shields.io/badge/Supabase-08070b?style=for-the-badge&logo=supabase&logoColor=FF8A1F)
 ![PWA](https://img.shields.io/badge/PWA-08070b?style=for-the-badge&logo=pwa&logoColor=FFD23F)
 
 <br>
@@ -95,13 +96,16 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 
 ### Para o Mike (`/admin`)
 
-- 🗓️ **Agenda** com status (pendente, confirmado, concluído, cancelado), indicadores e atalho para chamar o cliente.
+- 🔐 **Login com e-mail e senha**, com **"esqueci minha senha"** (link por e-mail que abre a tela de criar senha nova, mesmo em outro aparelho).
+- 🗓️ **Agenda em tempo real**: o pedido do cliente aparece na hora, com status (pendente, confirmado, concluído, cancelado) e indicadores.
+- 💬 **WhatsApp com 1 toque**: "pedir sinal" (com valor e chave Pix), e ao confirmar, cancelar ou concluir o app abre o WhatsApp do cliente com a mensagem certa pronta. Na de "concluído" vão o link dos cuidados e o @ do Instagram.
 - 🏷️ **Tabela de preços 100% editável**:
   - **Tamanhos**: faixas em cm, valor base e duração da sessão
   - **Áreas do corpo**: ajuste em % por região (costela dói mais, cobra mais 😅)
   - **Estilos**: ajuste por complexidade e marcação das especialidades em destaque
   - **Regras gerais**: valor mínimo, adicional de cor, margem da estimativa e % do sinal, com **exemplo de cálculo ao vivo**
-- ⚙️ **Configurações**: dados do estúdio, dias e horários, folgas, PIN e backup em JSON.
+- ⚙️ **Configurações**: dados do estúdio, chave Pix, dias e horários, folgas, troca de senha e backup em JSON.
+- ☁️ **Tudo salvo no banco automaticamente**, com aviso de "Salvando… / Salvo" no topo do painel.
 
 <br>
 
@@ -156,6 +160,26 @@ O corpo 3D é **gerado por código** (geometrias de revolução e cápsulas), se
 
 <br>
 
+## 🗄️ Banco e segurança
+
+O backend é o **Supabase**, e a regra de ouro é: **o cliente nunca vê dados de outro cliente**.
+
+| | Visitante | Mike |
+| :--- | :---: | :---: |
+| Ver preços, estúdio e portfólio | ✅ | ✅ |
+| Criar pedido de horário | ✅ | ✅ |
+| Ver horários ocupados (só data, hora e duração) | ✅ | ✅ |
+| Ver nome e telefone dos clientes, confirmar e excluir pedidos | ❌ | ✅ |
+| Alterar preços, horários e dados do estúdio | ❌ | ✅ |
+
+- 🛡️ **Row Level Security** em todas as tabelas, com permissões liberadas uma a uma (nada fica exposto por padrão).
+- ⛔ **Trava de horário no próprio banco**: dois clientes clicando no mesmo horário ao mesmo tempo? Só um leva; o outro vê "esse horário acabou de ser reservado".
+- 🔑 Cadastro público desligado: só entra no painel quem está na tabela de administradores.
+
+O script completo está em [`supabase/schema.sql`](supabase/schema.sql) e o passo a passo em [`supabase/README.md`](supabase/README.md).
+
+<br>
+
 ## 🛠️ Stack
 
 | Camada | Tecnologia |
@@ -164,6 +188,7 @@ O corpo 3D é **gerado por código** (geometrias de revolução e cápsulas), se
 | 3D | Three.js · React Three Fiber · Drei · shader GLSL próprio |
 | Estado | Zustand (persistido, com migração de versões) |
 | Rotas | React Router 7, com páginas carregadas sob demanda |
+| Backend | Supabase: Postgres, Auth, Row Level Security, Realtime e Storage |
 | App | vite-plugin-pwa: instalável, cache offline e atalhos |
 | Qualidade | Vitest · checagem de tipos no build |
 
@@ -193,7 +218,8 @@ src/
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+cp .env.example .env.local   # preencha com a URL e a chave pública do Supabase
+npm run dev                  # http://localhost:5173
 ```
 
 | Script | O que faz |
@@ -204,7 +230,7 @@ npm run dev        # http://localhost:5173
 | `npm test` | Roda os testes |
 | `npm run icons` | Gera favicon e ícones do app a partir do logo |
 
-> 🔐 Painel do artista em `/admin`. O PIN de demonstração é **1234**. Nesta versão os dados ficam no aparelho e o PIN é só uma trava de interface. O login de verdade chega com o Supabase (veja o roadmap).
+> 🔐 Painel do artista em `/admin`. **Sem o `.env.local`**, o app roda no **modo local** (dados no aparelho, PIN de demonstração **1234**): ótimo para testar sem criar projeto. **Com o Supabase configurado**, o painel pede e-mail e senha.
 
 <br>
 
@@ -215,11 +241,14 @@ npm run dev        # http://localhost:5173
 - [x] Painel: agenda, preços e configurações
 - [x] Identidade visual da ArtExtreme, portfólio e guia de cuidados
 - [x] PWA instalável no Android e no iPhone
-- [ ] **Supabase**: agenda compartilhada entre clientes e o Mike
-- [ ] **Login do Mike** por e-mail e senha, com **"esqueci minha senha"**
+- [x] **Supabase**: agenda compartilhada entre clientes e o Mike, em tempo real
+- [x] **Login do Mike** por e-mail e senha, com **"esqueci minha senha"**
+- [x] **WhatsApp com 1 toque** para pedir sinal, confirmar, cancelar e concluir
 - [ ] **Aba Portfólio** no painel: subir fotos pelo celular, escolher estilo e ordem
 - [ ] Deploy na Vercel com domínio próprio
-- [ ] Notificação de novo pedido para o Mike
+- [ ] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
+- [ ] E-mails de senha saindo do Gmail do estúdio (SMTP)
+- [ ] WhatsApp 100% automático pela API oficial da Meta
 
 <br>
 

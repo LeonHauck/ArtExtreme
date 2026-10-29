@@ -1,9 +1,10 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import { ArrowRight, CalendarX2, Check, Pencil, ScanLine } from 'lucide-react'
+import { ArrowRight, CalendarX2, Check, Loader2, Pencil, ScanLine } from 'lucide-react'
 import { useStudio } from '@/store/studio'
 import { useEstimate } from '@/hooks/useEstimate'
-import { availableSlots, bookableDates } from '@/lib/schedule'
+import { availableSlots, bookableDates, type BusySlot } from '@/lib/schedule'
+import { createBooking, fetchBusy, SlotTakenError } from '@/lib/bookingsRepo'
 import { formatBRL, formatDateLong, formatHours, maskPhone, onlyDigits, parseISODate, uid } from '@/lib/format'
 import { bookingMessageToStudio, waLink } from '@/lib/whatsapp'
 import { WhatsAppIcon } from '@/components/ui/BrandIcons'
@@ -66,8 +67,6 @@ function Success({ booking }: { booking: BookingT }) {
 
 export default function Booking() {
   const schedule = useStudio((s) => s.schedule)
-  const bookings = useStudio((s) => s.bookings)
-  const addBooking = useStudio((s) => s.addBooking)
   const resetDraft = useStudio((s) => s.resetDraft)
   const { draft, placements, style, ready, estimate } = useEstimate()
 
@@ -75,23 +74,44 @@ export default function Booking() {
   const [time, setTime] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [done, setDone] = useState<BookingT | null>(null)
+  const [busy, setBusy] = useState<BusySlot[] | null>(null)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const dates = useMemo(() => bookableDates(schedule), [schedule])
+
+  // Horários ocupados (no banco, sem dados de clientes)
+  const loadBusy = useCallback(async () => {
+    if (!dates.length) return setBusy([])
+    try {
+      setBusy(await fetchBusy(dates[0], dates[dates.length - 1]))
+    } catch {
+      setBusy([])
+      setError('Não foi possível carregar a agenda. Verifique sua internet e tente de novo.')
+    }
+  }, [dates])
+
+  useEffect(() => {
+    void loadBusy()
+  }, [loadBusy])
 
   const hours = estimate?.hours ?? 1
   const days = useMemo(
-    () => bookableDates(schedule).map((iso) => ({ iso, free: availableSlots(schedule, bookings, iso, hours).length })),
-    [schedule, bookings, hours],
+    () => dates.map((iso) => ({ iso, free: availableSlots(schedule, busy ?? [], iso, hours).length })),
+    [dates, schedule, busy, hours],
   )
   const slots = useMemo(
-    () => (date ? availableSlots(schedule, bookings, date, hours) : []),
-    [schedule, bookings, date, hours],
+    () => (date ? availableSlots(schedule, busy ?? [], date, hours) : []),
+    [schedule, busy, date, hours],
   )
 
   if (done) return <Success booking={done} />
   if (!ready || !estimate || !style) return <NeedsSimulation />
 
-  const valid = date && time && form.name.trim().length >= 2 && onlyDigits(form.phone).length >= 10 && form.adult
+  const valid =
+    date && time && form.name.trim().length >= 2 && onlyDigits(form.phone).length >= 10 && form.adult && !sending
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault()
     if (!valid) return
     const booking: BookingT = {
@@ -109,10 +129,25 @@ export default function Booking() {
       time,
       notes: form.notes.trim(),
     }
-    addBooking(booking)
-    resetDraft()
-    setDone(booking)
-    window.scrollTo({ top: 0 })
+    setSending(true)
+    setError(null)
+    try {
+      await createBooking(booking)
+      resetDraft()
+      setDone(booking)
+      window.scrollTo({ top: 0 })
+    } catch (err) {
+      if (err instanceof SlotTakenError) {
+        // Alguém reservou segundos antes: atualiza a agenda e pede outro horário
+        setTime(null)
+        await loadBusy()
+        setError(err.message)
+      } else {
+        setError('Não foi possível enviar o pedido. Verifique sua internet e tente de novo.')
+      }
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -157,7 +192,11 @@ export default function Booking() {
       {/* Data */}
       <section className="mt-10">
         <h2 className="label">Escolha o dia</h2>
-        {days.length === 0 ? (
+        {busy === null ? (
+          <p className="flex items-center gap-2 text-mute">
+            <Loader2 size={18} className="animate-spin" /> Carregando horários livres…
+          </p>
+        ) : days.length === 0 ? (
           <p className="flex items-center gap-2 text-mute">
             <CalendarX2 size={18} /> Agenda fechada no momento. Fale com o estúdio pelo WhatsApp.
           </p>
@@ -281,9 +320,20 @@ export default function Booking() {
         </label>
       </section>
 
-      <button type="submit" className="btn btn-primary mt-10 w-full" disabled={!valid}>
-        Solicitar horário
-        {date && time ? ` · ${time}` : ''}
+      {error && (
+        <p className="mt-8 rounded-md border border-pink/40 bg-pink/10 p-3 text-sm text-bone" role="alert">
+          {error}
+        </p>
+      )}
+      <button type="submit" className="btn btn-primary mt-6 w-full" disabled={!valid}>
+        {sending ? (
+          <Loader2 size={18} className="animate-spin" />
+        ) : (
+          <>
+            Solicitar horário
+            {date && time ? ` · ${time}` : ''}
+          </>
+        )}
       </button>
       <p className="mt-3 text-center text-xs text-mute">
         O horário fica reservado como pendente até a confirmação do sinal.

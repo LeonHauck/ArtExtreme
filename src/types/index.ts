@@ -53,6 +53,8 @@ export interface StudioInfo {
   /** Somente dígitos, com DDI. Ex.: 5511999999999 */
   whatsapp: string
   instagram: string
+  /** Chave Pix para o sinal (vai na mensagem de "pedir sinal"). */
+  pixKey?: string
   address: string
   city: string
 }

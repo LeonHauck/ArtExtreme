@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { availableSlots, bookableDates } from './schedule'
+import { availableSlots, bookableDates, busyFromBookings } from './schedule'
 import type { Booking, ScheduleConfig } from '@/types'
 
 const schedule: ScheduleConfig = {
@@ -34,17 +34,21 @@ describe('availableSlots', () => {
   })
 
   it('remove horários que sobrepõem agendamentos ativos', () => {
-    const slots = availableSlots(schedule, [booking(MONDAY, '12:00', 2)], MONDAY, 1)
+    const slots = availableSlots(schedule, busyFromBookings([booking(MONDAY, '12:00', 2)]), MONDAY, 1)
     expect(slots).toEqual(['10:00', '11:00', '14:00', '15:00', '16:00', '17:00'])
   })
 
   it('ignora agendamentos cancelados', () => {
-    const slots = availableSlots(schedule, [booking(MONDAY, '10:00', 8, 'cancelled')], MONDAY, 1)
+    const slots = availableSlots(schedule, busyFromBookings([booking(MONDAY, '10:00', 8, 'cancelled')]), MONDAY, 1)
     expect(slots).toHaveLength(8)
   })
 
   it('sessão maior que o expediente só pode começar na abertura', () => {
     expect(availableSlots(schedule, [], MONDAY, 10)).toEqual(['10:00'])
+  })
+
+  it('aceita horários ocupados vindos do banco', () => {
+    expect(availableSlots(schedule, [{ date: MONDAY, time: '10:00', hours: 3 }], MONDAY, 1)[0]).toBe('13:00')
   })
 
   it('não oferece nada em dia fechado', () => {
