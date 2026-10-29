@@ -68,15 +68,19 @@ create table if not exists public.bookings (
   session_date     date not null,
   start_time       time not null,
   hours            numeric(4, 2) not null check (hours > 0 and hours <= 24),
-  notes            text check (notes is null or char_length(notes) <= 1000)
+  notes            text check (notes is null or char_length(notes) <= 1000),
+  final_price      numeric(10, 2) check (final_price is null or final_price >= 0)  -- valor cobrado
 );
+-- Projetos criados antes do relatório: adiciona a coluna do valor cobrado
+alter table public.bookings add column if not exists final_price numeric(10, 2)
+  check (final_price is null or final_price >= 0);
 create index if not exists bookings_session_date_idx on public.bookings (session_date);
 alter table public.bookings enable row level security;
 
 drop policy if exists "cliente cria pedido pendente" on public.bookings;
 create policy "cliente cria pedido pendente" on public.bookings
   for insert to anon, authenticated
-  with check (status = 'pending' and session_date > current_date);
+  with check (status = 'pending' and session_date > current_date and final_price is null);
 
 drop policy if exists "admin vê os pedidos" on public.bookings;
 create policy "admin vê os pedidos" on public.bookings

@@ -50,6 +50,7 @@ interface StudioState {
 
   addBooking: (b: Booking) => void
   setBookingStatus: (id: string, status: BookingStatus) => void
+  updateBooking: (id: string, patch: Partial<Booking>) => void
   removeBooking: (id: string) => void
 
   upsertPricingItem: <K extends PricingList>(list: K, item: PricingItem<K>) => void
@@ -103,6 +104,8 @@ export const useStudio = create<StudioState>()(
       addBooking: (b) => set((s) => ({ bookings: [...s.bookings, b] })),
       setBookingStatus: (id, status) =>
         set((s) => ({ bookings: s.bookings.map((b) => (b.id === id ? { ...b, status } : b)) })),
+      updateBooking: (id, patch) =>
+        set((s) => ({ bookings: s.bookings.map((b) => (b.id === id ? { ...b, ...patch } : b)) })),
       removeBooking: (id) => set((s) => ({ bookings: s.bookings.filter((b) => b.id !== id) })),
 
       upsertPricingItem: (list, item) =>

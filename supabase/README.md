@@ -109,6 +109,10 @@ As chaves ficam no arquivo **`push-secrets.local`** na raiz do projeto (fora do 
 
 > 📱 **iPhone**: precisa do iOS 16.4 ou mais novo e do app instalado pelo Safari (Compartilhar → Adicionar à Tela de Início). **Android**: funciona no Chrome, instalado ou não.
 
+## 8. Relatórios (valor cobrado)
+
+SQL Editor → cole e rode [`reports.sql`](reports.sql). Ele cria o campo do **valor cobrado** em cada sessão, que o artista informa ao concluir na Agenda, e impede que o cliente preencha esse campo ao agendar. Sem ele, o painel continua funcionando e os relatórios usam a estimativa.
+
 ## O que cada um pode fazer
 
 | | Visitante | Administrador |
@@ -120,5 +124,6 @@ As chaves ficam no arquivo **`push-secrets.local`** na raiz do projeto (fora do 
 | Alterar preços, estúdio e horários | ❌ | ✅ |
 | Enviar e apagar fotos do portfólio | ❌ | ✅ |
 | Ativar notificações no próprio aparelho | ❌ | ✅ |
+| Ver relatórios e informar o valor cobrado | ❌ | ✅ |
 
 Dois pedidos ativos no mesmo horário são bloqueados pelo próprio banco.

@@ -6,6 +6,16 @@ const brl = new Intl.NumberFormat('pt-BR', {
 
 export const formatBRL = (n: number) => brl.format(n)
 
+const brlCompact = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})
+
+/** R$ 850 · R$ 1,3 mil · R$ 12,5 mil (eixos e rótulos de gráfico) */
+export const formatBRLCompact = (n: number) => brlCompact.format(n)
+
 export function formatHours(h: number): string {
   const whole = Math.floor(h)
   const min = Math.round((h - whole) * 60)
@@ -70,4 +80,17 @@ export function slugify(s: string): string {
 export function formatWhatsApp(digits: string): string {
   const d = onlyDigits(digits)
   return maskPhone(d.length > 11 && d.startsWith('55') ? d.slice(2) : d)
+}
+
+/**
+ * Valor digitado em reais: "1.500" → 1500 · "350,50" → 350.5 · "350.5" → 350.5.
+ * Vazio → null. Texto inválido → NaN.
+ */
+export function parseMoney(input: string): number | null {
+  const s = input.trim().replace(/^R\$\s*/i, '')
+  if (!s) return null
+  if (s.includes(',')) return Number(s.replace(/\./g, '').replace(',', '.'))
+  // Sem vírgula: ponto seguido de 3 dígitos é milhar (1.500); senão, decimal (350.5)
+  if (/^\d{1,3}(\.\d{3})+$/.test(s)) return Number(s.replace(/\./g, ''))
+  return Number(s)
 }

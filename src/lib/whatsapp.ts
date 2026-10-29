@@ -25,11 +25,14 @@ export function bookingMessageToStudio(b: Booking): string {
     .join('\n')
 }
 
-/** Número do cliente no formato do WhatsApp (com DDI 55). */
-export const clientWhatsApp = (b: Booking) => {
-  const d = onlyDigits(b.client.phone)
+/** Telefone no formato do WhatsApp (com DDI 55). */
+export const toWhatsAppNumber = (phone: string) => {
+  const d = onlyDigits(phone)
   return d.length <= 11 ? `55${d}` : d
 }
+
+/** Número do cliente do pedido no formato do WhatsApp. */
+export const clientWhatsApp = (b: Booking) => toWhatsAppNumber(b.client.phone)
 
 /** Mensagens que o artista manda ao cliente a partir do painel (com 1 toque). */
 export type ClientMessageKind = 'chat' | 'deposit' | 'confirmed' | 'cancelled' | 'done'

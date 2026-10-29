@@ -29,6 +29,7 @@ interface BookingRow {
   start_time: string
   hours: number | string
   notes: string | null
+  final_price?: number | string | null
 }
 
 const fromRow = (r: BookingRow): Booking => ({
@@ -41,6 +42,7 @@ const fromRow = (r: BookingRow): Booking => ({
   date: r.session_date,
   time: r.start_time.slice(0, 5),
   notes: r.notes ?? '',
+  finalPrice: r.final_price == null ? null : Number(r.final_price),
 })
 
 const toRow = (b: Booking) => ({
@@ -102,6 +104,19 @@ export async function setBookingStatus(id: string, status: BookingStatus): Promi
     if (error.code === 'P0001') throw new SlotTakenError()
     throw error
   }
+}
+
+/** Conclui a sessão guardando quanto foi cobrado (ou só corrige o valor depois). */
+export async function setBookingDone(id: string, finalPrice: number | null): Promise<void> {
+  if (!supabase) return useStudio.getState().updateBooking(id, { status: 'done', finalPrice })
+  const { error } = await supabase.from('bookings').update({ status: 'done', final_price: finalPrice }).eq('id', id)
+  if (error?.code === 'PGRST204') {
+    // Banco ainda sem a coluna final_price (supabase/reports.sql não rodou): conclui sem o valor
+    const retry = await supabase.from('bookings').update({ status: 'done' }).eq('id', id)
+    if (retry.error) throw retry.error
+    return
+  }
+  if (error) throw error
 }
 
 export async function deleteBooking(id: string): Promise<void> {

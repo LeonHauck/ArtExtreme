@@ -131,4 +131,6 @@ export interface Booking {
   date: string
   time: string
   notes: string
+  /** Valor que o artista realmente cobrou (informado ao concluir). Sem ele, os relatórios usam a estimativa. */
+  finalPrice?: number | null
 }

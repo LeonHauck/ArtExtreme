@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Check, CheckCheck, Inbox, Loader2, RefreshCw, Trash2, X } from 'lucide-react'
-import { deleteBooking, listBookings, onBookingsChange, setBookingStatus, SlotTakenError } from '@/lib/bookingsRepo'
+import { Check, CheckCheck, Inbox, Loader2, Pencil, RefreshCw, Trash2, X } from 'lucide-react'
+import { deleteBooking, listBookings, onBookingsChange, setBookingDone, setBookingStatus, SlotTakenError } from '@/lib/bookingsRepo'
 import { useStudio } from '@/store/studio'
 import type { Booking, BookingStatus } from '@/types'
-import { formatBRL, formatDateLong, formatHours, maskPhone, toISODate } from '@/lib/format'
+import { formatBRL, formatDateLong, formatHours, maskPhone, parseMoney, toISODate } from '@/lib/format'
 import { clientMessage, clientWhatsApp, waLink, type ClientMessageKind } from '@/lib/whatsapp'
 import { WhatsAppIcon, InstagramIcon } from '@/components/ui/BrandIcons'
 import { PushBanner } from '@/components/admin/PushControls'
@@ -39,7 +39,49 @@ function Stat({ label, value, accent = false }: { label: string; value: string |
 
 interface CardActions {
   setStatus: (id: string, status: BookingStatus) => void
+  finish: (id: string, price: number | null) => void
   remove: (id: string) => void
+}
+
+/** "Quanto você cobrou?" ao concluir (ou para corrigir depois). Vai para os Relatórios. */
+function FinishForm({ b, onSave, onCancel }: { b: Booking; onSave: (price: number | null) => void; onCancel: () => void }) {
+  const [value, setValue] = useState(String(Math.round(b.finalPrice ?? b.estimate.value)))
+  const price = parseMoney(value)
+  const valid = price === null || (Number.isFinite(price) && price >= 0)
+  return (
+    <form
+      className="mt-4 rounded-md border border-violet/30 bg-violet/5 p-3"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (valid) onSave(price)
+      }}
+    >
+      <label htmlFor={`price-${b.id}`} className="text-sm font-semibold">
+        Quanto você cobrou?
+      </label>
+      <p className="text-xs text-mute">Entra no faturamento dos Relatórios. A estimativa era {formatBRL(b.estimate.value)}.</p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="relative w-36">
+          <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-mute">R$</span>
+          <input
+            id={`price-${b.id}`}
+            className="input py-2 pl-9 text-sm"
+            inputMode="decimal"
+            autoFocus
+            value={value}
+            onChange={(e) => setValue(e.target.value.replace(/[^0-9.,]/g, ''))}
+            aria-invalid={!valid}
+          />
+        </div>
+        <button className="btn btn-primary btn-sm" disabled={!valid}>
+          <CheckCheck size={15} /> {b.status === 'done' ? 'Salvar valor' : 'Concluir sessão'}
+        </button>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+          Voltar
+        </button>
+      </div>
+    </form>
+  )
 }
 
 /** Abre o WhatsApp do cliente já com a mensagem pronta (o Mike só toca em enviar). */
@@ -48,8 +90,9 @@ function useClientWa() {
   return (kind: ClientMessageKind, b: Booking) => waLink(clientWhatsApp(b), clientMessage(kind, b, studio, window.location.origin))
 }
 
-function BookingCard({ b, setStatus, remove }: { b: Booking } & CardActions) {
+function BookingCard({ b, setStatus, finish, remove }: { b: Booking } & CardActions) {
   const wa = useClientWa()
+  const [finishing, setFinishing] = useState(false)
   const st = STATUS[b.status]
   const active = b.status === 'pending' || b.status === 'confirmed'
 
@@ -83,12 +126,29 @@ function BookingCard({ b, setStatus, remove }: { b: Booking } & CardActions) {
           </ul>
           {b.tattoo.description && <p className="mt-1 text-sm text-mute italic">“{b.tattoo.description}”</p>}
           {b.notes && <p className="mt-1 text-sm text-mute">Obs.: {b.notes}</p>}
-          <p className="mt-2 text-sm">
-            <span className="text-violet-light">
-              {formatBRL(b.estimate.low)} – {formatBRL(b.estimate.high)}
-            </span>
-            <span className="text-mute"> · sinal {formatBRL(b.estimate.deposit)}</span>
-          </p>
+          {b.status === 'done' ? (
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 text-sm">
+              {b.finalPrice != null ? (
+                <span>
+                  Cobrado <strong className="font-semibold">{formatBRL(b.finalPrice)}</strong>
+                </span>
+              ) : (
+                <span className="text-mute">Valor cobrado não informado (estimativa {formatBRL(b.estimate.value)})</span>
+              )}
+              {!finishing && (
+                <button className="inline-flex items-center gap-1 text-xs text-violet-light hover:underline" onClick={() => setFinishing(true)}>
+                  <Pencil size={12} /> {b.finalPrice != null ? 'editar' : 'informar'}
+                </button>
+              )}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm">
+              <span className="text-violet-light">
+                {formatBRL(b.estimate.low)} – {formatBRL(b.estimate.high)}
+              </span>
+              <span className="text-mute"> · sinal {formatBRL(b.estimate.deposit)}</span>
+            </p>
+          )}
           <p className="mt-1 flex flex-wrap items-center gap-x-3 text-xs text-mute">
             <span>{maskPhone(b.client.phone.replace(/^55/, ''))}</span>
             {b.client.instagram && (
@@ -104,6 +164,17 @@ function BookingCard({ b, setStatus, remove }: { b: Booking } & CardActions) {
           </p>
         </div>
       </div>
+
+      {finishing && (
+        <FinishForm
+          b={b}
+          onCancel={() => setFinishing(false)}
+          onSave={(price) => {
+            setFinishing(false)
+            finish(b.id, price)
+          }}
+        />
+      )}
 
       <div className="mt-4 flex flex-wrap gap-2 border-t border-bone/5 pt-3">
         {b.status === 'pending' ? (
@@ -121,7 +192,7 @@ function BookingCard({ b, setStatus, remove }: { b: Booking } & CardActions) {
           </button>
         )}
         {b.status === 'confirmed' && (
-          <button className="btn btn-outline btn-sm" onClick={() => setStatus(b.id, 'done')}>
+          <button className="btn btn-outline btn-sm" onClick={() => setFinishing(true)} disabled={finishing}>
             <CheckCheck size={15} /> Concluir
           </button>
         )}
@@ -189,6 +260,13 @@ function useAdminBookings() {
     if (ok && booking && status !== 'pending') setNotice({ booking: { ...booking, status }, kind: status })
   }
 
+  const finish = async (id: string, price: number | null) => {
+    const booking = bookings?.find((b) => b.id === id)
+    const ok = await run(() => setBookingDone(id, price))
+    // Só sugere a mensagem de "concluído" na primeira vez (não ao corrigir o valor)
+    if (ok && booking && booking.status !== 'done') setNotice({ booking: { ...booking, status: 'done', finalPrice: price }, kind: 'done' })
+  }
+
   return {
     bookings,
     error,
@@ -196,12 +274,13 @@ function useAdminBookings() {
     notice,
     dismissNotice: () => setNotice(null),
     setStatus: (id: string, status: BookingStatus) => void setStatus(id, status),
+    finish: (id: string, price: number | null) => void finish(id, price),
     remove: (id: string) => void run(() => deleteBooking(id)),
   }
 }
 
 export default function Agenda() {
-  const { bookings: loaded, error, refresh, notice, dismissNotice, setStatus, remove } = useAdminBookings()
+  const { bookings: loaded, error, refresh, notice, dismissNotice, setStatus, finish, remove } = useAdminBookings()
   const wa = useClientWa()
   const bookings = useMemo(() => loaded ?? [], [loaded])
   const [filter, setFilter] = useState<Filter>('upcoming')
@@ -288,7 +367,7 @@ export default function Agenda() {
               </h2>
               <div className="space-y-3">
                 {list.map((b) => (
-                  <BookingCard key={b.id} b={b} setStatus={setStatus} remove={remove} />
+                  <BookingCard key={b.id} b={b} setStatus={setStatus} finish={finish} remove={remove} />
                 ))}
               </div>
             </section>

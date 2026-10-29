@@ -109,6 +109,8 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
   - **Estilos**: ajuste por complexidade e marcação das especialidades em destaque
   - **Regras gerais**: valor mínimo, adicional de cor, margem da estimativa e % do sinal, com **exemplo de cálculo ao vivo**
 - ⚙️ **Configurações**: dados do estúdio, chave Pix, dias e horários, folgas, troca de senha e backup em JSON.
+- 📊 **Relatórios**: faturamento do mês ou do ano (com comparação ao período anterior), tatuagens feitas, clientes novos x que voltaram, ticket médio, horas tatuando, gráfico de faturamento por mês, estilos e locais campeões e a lista de clientes com quantas vezes vieram e quanto gastaram. Filtros por mês, ano e estilo.
+- 💰 **Valor cobrado de verdade**: ao concluir a sessão, o app pergunta quanto foi cobrado (já preenchido com a estimativa) e é esse valor que entra no faturamento.
 - 🖼️ **Portfólio gerenciável**: sobe fotos direto do celular (o app recorta no formato do carrossel e comprime: 8,9 MB viram ~230 KB), define título, estilo, link do post, ordem e o que aparece no site.
 - ☁️ **Tudo salvo no banco automaticamente**, com aviso de "Salvando… / Salvo" no topo do painel.
 
@@ -213,7 +215,7 @@ src/
 │   └── InstallAppButton 📲 "instalar app" (Android e iPhone)
 ├── data/                📦 preços iniciais, textos do estúdio e portfólio
 ├── hooks/               🪝 useEstimate, usePush, portfólio
-├── lib/                 🧮 regras puras: preço, agenda, WhatsApp, push, formatação
+├── lib/                 🧮 regras puras: preço, agenda, relatórios, WhatsApp, push, formatação
 ├── pages/               📄 home, simulador, agendamento e painel
 ├── store/               🗃️ estado global persistido
 └── types/               🔤 tipos do domínio
@@ -255,6 +257,7 @@ npm run dev                  # http://localhost:5173
 - [x] **No ar na Vercel**: [artextreme.vercel.app](https://artextreme.vercel.app), com deploy automático a cada push
 - [ ] Domínio próprio (ex.: `artextreme.com.br`)
 - [x] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
+- [x] **Relatórios** com faturamento, clientes, estilos e locais por mês e por ano
 - [ ] E-mails de senha saindo do Gmail do estúdio (SMTP)
 - [ ] WhatsApp 100% automático pela API oficial da Meta
 
