@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { CalendarCheck, Check, CloudOff, ExternalLink, Images, KeyRound, Loader2, Lock, LogOut, MailCheck, Settings, Tags } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
@@ -8,6 +8,7 @@ import { useStudio } from '@/store/studio'
 import { sendPasswordReset, signIn, signOut, useAuth } from '@/store/auth'
 import { useSync } from '@/lib/settingsSync'
 import { isRemote } from '@/lib/supabase'
+import { disablePush, syncPush } from '@/lib/push'
 import { endAdminSession, isAdminSession, startAdminSession } from '@/lib/auth'
 
 const TABS = [
@@ -118,6 +119,8 @@ function RemoteGate() {
   return (
     <AdminShell
       onLogout={async () => {
+        // Quem saiu da conta não recebe mais avisos neste aparelho
+        await disablePush().catch(() => {})
         await signOut()
         navigate('/admin')
       }}
@@ -203,6 +206,11 @@ function LocalGate() {
 /* ─── Estrutura do painel ───────────────────────────────────────────── */
 
 function AdminShell({ onLogout }: { onLogout: () => void }) {
+  // Mantém a inscrição de notificações deste aparelho em dia no banco
+  useEffect(() => {
+    if (isRemote) void syncPush().catch(() => {})
+  }, [])
+
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-40 border-b border-bone/5 bg-ink/90 backdrop-blur-md">

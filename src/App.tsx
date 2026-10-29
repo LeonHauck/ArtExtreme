@@ -1,6 +1,8 @@
-import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Link, Route, Routes } from 'react-router'
-import { initAuth } from '@/store/auth'
+import { lazy, Suspense, useEffect, useRef } from 'react'
+import { BrowserRouter, Link, Route, Routes, useNavigate } from 'react-router'
+import { initAuth, useAuth } from '@/store/auth'
+import { isRemote } from '@/lib/supabase'
+import { isStandalone } from '@/lib/push'
 import { loadRemoteSettings, startSettingsAutosave } from '@/lib/settingsSync'
 import { SiteLayout } from '@/components/layout/SiteLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
@@ -35,6 +37,26 @@ function NotFound() {
   )
 }
 
+/**
+ * App instalado aberto pelo ícone: se o artista já está logado, vai direto
+ * para o painel. Clientes (e o site no navegador) continuam na página inicial.
+ */
+function OpenPanelOnLaunch() {
+  const navigate = useNavigate()
+  const ready = useAuth((s) => s.ready)
+  const isAdmin = useAuth((s) => s.isAdmin)
+  const pending = useRef(isRemote && isStandalone() && window.location.pathname === '/')
+
+  useEffect(() => {
+    if (!pending.current || !ready) return
+    pending.current = false
+    // Só se a pessoa ainda estiver na página inicial (não navegou enquanto carregava)
+    if (isAdmin && window.location.pathname === '/') navigate('/admin', { replace: true })
+  }, [ready, isAdmin, navigate])
+
+  return null
+}
+
 export default function App() {
   // Sessão do artista + preços/configurações do banco (no modo Supabase)
   useEffect(() => {
@@ -45,6 +67,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <OpenPanelOnLaunch />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route element={<SiteLayout />}>

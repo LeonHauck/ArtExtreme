@@ -72,6 +72,43 @@ O serviço de e-mail padrão do Supabase só envia para membros da equipe do pro
 
 > 🔐 A senha de app fica só no painel do Supabase. Se ela vazar, basta revogá-la em myaccount.google.com/apppasswords.
 
+## 7. Notificações no celular do artista
+
+Quando um cliente pede horário, o banco chama a função `notify-booking`, que manda a notificação para os aparelhos onde o artista ativou os avisos.
+
+```text
+cliente agenda ──► tabela bookings ──► Database Webhook ──► Edge Function ──► celular do Mike 🔔
+```
+
+As chaves ficam no arquivo **`push-secrets.local`** na raiz do projeto (fora do Git). Para gerar novas: `npx web-push generate-vapid-keys`. Se trocar, atualize também `VAPID_PUBLIC_KEY` em `src/lib/push.ts`.
+
+**7.1 Tabela dos aparelhos**: SQL Editor → cole e rode [`push.sql`](push.sql).
+
+**7.2 Função**: Edge Functions → **Deploy a new function** → **Via Editor**
+- Nome: `notify-booking`
+- Apague o exemplo, cole o conteúdo de [`functions/notify-booking/index.ts`](functions/notify-booking/index.ts) e clique em **Deploy**.
+- Na função → **Details** (ou Settings) → desligue **Verify JWT** e salve. A função confere sozinha quem está chamando (segredo do webhook ou login do artista).
+
+> Pela linha de comando: `npx supabase functions deploy notify-booking --no-verify-jwt --project-ref <ref>`.
+
+**7.3 Secrets**: Edge Functions → **Secrets** → adicione os 3 valores do `push-secrets.local`:
+
+| Name | Valor |
+| :--- | :--- |
+| `VAPID_PUBLIC_KEY` | linha VAPID_PUBLIC_KEY |
+| `VAPID_PRIVATE_KEY` | linha VAPID_PRIVATE_KEY |
+| `WEBHOOK_SECRET` | linha WEBHOOK_SECRET |
+
+**7.4 Webhook**: Database → **Webhooks** → **Create a new hook** (se pedir, clique antes em *Enable webhooks*)
+- Name: `avisar_pedido_novo` · Table: `bookings` · Events: só **Insert**
+- Type: **Supabase Edge Functions** → `notify-booking` · Method `POST` · Timeout `5000`
+- HTTP Headers → **Add a new header**: `x-webhook-secret` = o valor de WEBHOOK_SECRET
+- **Create webhook**
+
+**7.5 Ativar no celular**: abra o painel no app instalado → **Ativar notificações** (aparece na Agenda e em Configurações). Já chega uma notificação de teste.
+
+> 📱 **iPhone**: precisa do iOS 16.4 ou mais novo e do app instalado pelo Safari (Compartilhar → Adicionar à Tela de Início). **Android**: funciona no Chrome, instalado ou não.
+
 ## O que cada um pode fazer
 
 | | Visitante | Administrador |
@@ -82,5 +119,6 @@ O serviço de e-mail padrão do Supabase só envia para membros da equipe do pro
 | Ver, confirmar e excluir pedidos | ❌ | ✅ |
 | Alterar preços, estúdio e horários | ❌ | ✅ |
 | Enviar e apagar fotos do portfólio | ❌ | ✅ |
+| Ativar notificações no próprio aparelho | ❌ | ✅ |
 
 Dois pedidos ativos no mesmo horário são bloqueados pelo próprio banco.

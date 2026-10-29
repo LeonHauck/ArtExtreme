@@ -6,6 +6,8 @@ import type { Booking, BookingStatus } from '@/types'
 import { formatBRL, formatDateLong, formatHours, maskPhone, toISODate } from '@/lib/format'
 import { clientMessage, clientWhatsApp, waLink, type ClientMessageKind } from '@/lib/whatsapp'
 import { WhatsAppIcon, InstagramIcon } from '@/components/ui/BrandIcons'
+import { PushBanner } from '@/components/admin/PushControls'
+import { isRemote } from '@/lib/supabase'
 
 const STATUS: Record<BookingStatus, { label: string; className: string }> = {
   pending: { label: 'Pendente', className: 'border-sun/40 bg-sun/10 text-sun' },
@@ -240,6 +242,8 @@ export default function Agenda() {
           <RefreshCw size={15} /> <span className="hidden sm:inline">Atualizar</span>
         </button>
       </div>
+
+      {isRemote && <PushBanner />}
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Pendentes" value={stats.pending} accent={stats.pending > 0} />

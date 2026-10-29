@@ -3,6 +3,7 @@ import { Download, KeyRound, Upload, X } from 'lucide-react'
 import { useStudio } from '@/store/studio'
 import { NumberField } from '@/components/ui/NumberField'
 import { PasswordInput } from '@/components/admin/AuthCard'
+import { PushSettings } from '@/components/admin/PushControls'
 import { updatePassword, useAuth } from '@/store/auth'
 import { isRemote } from '@/lib/supabase'
 import { formatDateShort, onlyDigits, toISODate } from '@/lib/format'
@@ -288,6 +289,11 @@ export default function Settings() {
       <h1 className="font-display text-4xl tracking-wide">Configurações</h1>
       <StudioPanel />
       <SchedulePanel />
+      {isRemote && (
+        <Panel title="Notificações" description="Aviso no celular quando um cliente pede horário, mesmo com o app fechado.">
+          <PushSettings />
+        </Panel>
+      )}
       <div className="grid gap-6 lg:grid-cols-2">
         {isRemote ? <AccountPanel /> : <SecurityPanel />}
         <BackupPanel />

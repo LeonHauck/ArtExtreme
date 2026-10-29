@@ -100,6 +100,8 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 
 - 🔐 **Login com e-mail e senha**, com **"esqueci minha senha"** (link por e-mail que abre a tela de criar senha nova, mesmo em outro aparelho).
 - 🗓️ **Agenda em tempo real**: o pedido do cliente aparece na hora, com status (pendente, confirmado, concluído, cancelado) e indicadores.
+- 🔔 **Notificação no celular** a cada pedido novo, mesmo com o app fechado (Android e iPhone com o app instalado). Tocou, abre a agenda. Tem botão de "Enviar teste".
+- 📲 **Abre direto no painel**: no app instalado, o Mike logado cai na agenda; cliente continua vendo o site.
 - 💬 **WhatsApp com 1 toque**: "pedir sinal" (com valor e chave Pix), e ao confirmar, cancelar ou concluir o app abre o WhatsApp do cliente com a mensagem certa pronta. Na de "concluído" vão o link dos cuidados e o @ do Instagram.
 - 🏷️ **Tabela de preços 100% editável**:
   - **Tamanhos**: faixas em cm, valor base e duração da sessão
@@ -179,6 +181,7 @@ O backend é o **Supabase**, e a regra de ouro é: **o cliente nunca vê dados d
 - 🛡️ **Row Level Security** em todas as tabelas, com permissões liberadas uma a uma (nada fica exposto por padrão).
 - ⛔ **Trava de horário no próprio banco**: dois clientes clicando no mesmo horário ao mesmo tempo? Só um leva; o outro vê "esse horário acabou de ser reservado".
 - 🔑 Cadastro público desligado: só entra no painel quem está na tabela de administradores.
+- 🔔 **Push com Web Push + VAPID**: o banco dispara um webhook a cada pedido, uma Edge Function cifra a notificação e entrega nos aparelhos do Mike. A chave privada fica só nos Secrets do Supabase.
 
 O script completo está em [`supabase/schema.sql`](supabase/schema.sql) e o passo a passo em [`supabase/README.md`](supabase/README.md).
 
@@ -209,8 +212,8 @@ src/
 │   ├── WorksCarousel    🖼️ esteira infinita do portfólio
 │   └── InstallAppButton 📲 "instalar app" (Android e iPhone)
 ├── data/                📦 preços iniciais, textos do estúdio e portfólio
-├── hooks/               🪝 useEstimate (estado derivado do simulador)
-├── lib/                 🧮 regras puras: preço, agenda, WhatsApp, formatação
+├── hooks/               🪝 useEstimate, usePush, portfólio
+├── lib/                 🧮 regras puras: preço, agenda, WhatsApp, push, formatação
 ├── pages/               📄 home, simulador, agendamento e painel
 ├── store/               🗃️ estado global persistido
 └── types/               🔤 tipos do domínio
@@ -251,7 +254,7 @@ npm run dev                  # http://localhost:5173
 - [x] **Aba Portfólio** no painel: subir fotos pelo celular, escolher estilo e ordem
 - [x] **No ar na Vercel**: [artextreme.vercel.app](https://artextreme.vercel.app), com deploy automático a cada push
 - [ ] Domínio próprio (ex.: `artextreme.com.br`)
-- [ ] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
+- [x] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
 - [ ] E-mails de senha saindo do Gmail do estúdio (SMTP)
 - [ ] WhatsApp 100% automático pela API oficial da Meta
 
