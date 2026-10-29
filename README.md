@@ -57,7 +57,13 @@ https://github.com/user-attachments/assets/8ffdfb22-60cb-4827-87fd-f620d36aefb8
 
 Como o cliente usa: simulador, valor fixo na tela, agendamento e **instalar como app**. ~1 min.
 
-⬇️ [Baixar o vídeo (MP4, 4,1 MB)](https://github.com/LeonHauck/ArtExtreme/raw/main/docs/media/ArtExtreme-demo-celular.mp4)
+<div align="center">
+  <img src="docs/readme/simulador-celular.gif" alt="Prévia no celular: marcando a coxa no corpo 3D, escolhendo o estilo e vendo o valor fixo na tela" width="300">
+  <br>
+  <sub>Prévia de 19s · o vídeo completo está logo abaixo</sub>
+</div>
+
+⬇️ [Baixar o vídeo completo (MP4, 5 MB)](https://github.com/LeonHauck/ArtExtreme/raw/main/docs/media/ArtExtreme-demo-celular.mp4)
 
 <br>
 
