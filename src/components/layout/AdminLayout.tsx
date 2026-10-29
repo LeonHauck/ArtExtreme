@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { CalendarCheck, Check, CloudOff, ExternalLink, KeyRound, Loader2, Lock, LogOut, MailCheck, Settings, Tags } from 'lucide-react'
+import { CalendarCheck, Check, CloudOff, ExternalLink, Images, KeyRound, Loader2, Lock, LogOut, MailCheck, Settings, Tags } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { InstallAppButton } from '@/components/InstallAppButton'
 import { AuthCard, PasswordInput } from '@/components/admin/AuthCard'
@@ -13,6 +13,7 @@ import { endAdminSession, isAdminSession, startAdminSession } from '@/lib/auth'
 const TABS = [
   { to: '/admin', label: 'Agenda', icon: CalendarCheck, end: true },
   { to: '/admin/precos', label: 'Preços', icon: Tags, end: false },
+  { to: '/admin/portfolio', label: 'Portfólio', icon: Images, end: false },
   { to: '/admin/config', label: 'Configurações', icon: Settings, end: false },
 ]
 

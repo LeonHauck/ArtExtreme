@@ -13,6 +13,7 @@ const Agenda = lazy(() => import('@/pages/admin/Agenda'))
 const Pricing = lazy(() => import('@/pages/admin/Pricing'))
 const Settings = lazy(() => import('@/pages/admin/Settings'))
 const ResetPassword = lazy(() => import('@/pages/admin/ResetPassword'))
+const PortfolioAdmin = lazy(() => import('@/pages/admin/Portfolio'))
 
 function PageLoader() {
   return (
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Agenda />} />
             <Route path="precos" element={<Pricing />} />
+            <Route path="portfolio" element={<PortfolioAdmin />} />
             <Route path="config" element={<Settings />} />
           </Route>
         </Routes>

@@ -20,7 +20,8 @@ import { Medal } from '@/components/ui/Medal'
 import { activeStyles, useStudio } from '@/store/studio'
 import { formatBRL } from '@/lib/format'
 import { sortedSizes } from '@/lib/pricing'
-import { ARTIST, ASEPSIS, AWARDS, BIO, CARE_AVOID, CARE_GUIDE, TIMELINE, WORKS } from '@/data/content'
+import { ARTIST, ASEPSIS, AWARDS, BIO, CARE_AVOID, CARE_GUIDE, TIMELINE } from '@/data/content'
+import { usePortfolioWorks } from '@/hooks/usePortfolioWorks'
 import { WorksCarousel } from '@/components/WorksCarousel'
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -291,6 +292,7 @@ function Artist() {
 
 function Works() {
   const instagram = useStudio((s) => s.studio.instagram)
+  const works = usePortfolioWorks()
   return (
     // Título dentro do container; a esteira ocupa a largura toda da tela
     <section className="pt-24">
@@ -314,7 +316,7 @@ function Works() {
           <InstagramIcon size={17} /> Ver tudo
         </a>
       </div>
-      <WorksCarousel works={WORKS} />
+      <WorksCarousel works={works} />
     </section>
   )
 }

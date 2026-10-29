@@ -107,7 +107,7 @@ export function WorksCarousel({ works }: { works: Work[] }) {
       {works.map((w, i) => (
         <li key={`${copy}-${w.src}`} className="w-[68vw] shrink-0 sm:w-[40vw] md:w-[30vw] lg:w-[21rem]">
           <a
-            href={w.url}
+            href={w.url || undefined}
             target="_blank"
             rel="noreferrer"
             tabIndex={copy === 1 ? -1 : undefined}

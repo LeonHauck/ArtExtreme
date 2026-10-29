@@ -105,6 +105,7 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
   - **Estilos**: ajuste por complexidade e marcação das especialidades em destaque
   - **Regras gerais**: valor mínimo, adicional de cor, margem da estimativa e % do sinal, com **exemplo de cálculo ao vivo**
 - ⚙️ **Configurações**: dados do estúdio, chave Pix, dias e horários, folgas, troca de senha e backup em JSON.
+- 🖼️ **Portfólio gerenciável**: sobe fotos direto do celular (o app recorta no formato do carrossel e comprime: 8,9 MB viram ~230 KB), define título, estilo, link do post, ordem e o que aparece no site.
 - ☁️ **Tudo salvo no banco automaticamente**, com aviso de "Salvando… / Salvo" no topo do painel.
 
 <br>
@@ -167,6 +168,7 @@ O backend é o **Supabase**, e a regra de ouro é: **o cliente nunca vê dados d
 | | Visitante | Mike |
 | :--- | :---: | :---: |
 | Ver preços, estúdio e portfólio | ✅ | ✅ |
+| Enviar, editar e apagar fotos do portfólio | ❌ | ✅ |
 | Criar pedido de horário | ✅ | ✅ |
 | Ver horários ocupados (só data, hora e duração) | ✅ | ✅ |
 | Ver nome e telefone dos clientes, confirmar e excluir pedidos | ❌ | ✅ |
@@ -244,7 +246,7 @@ npm run dev                  # http://localhost:5173
 - [x] **Supabase**: agenda compartilhada entre clientes e o Mike, em tempo real
 - [x] **Login do Mike** por e-mail e senha, com **"esqueci minha senha"**
 - [x] **WhatsApp com 1 toque** para pedir sinal, confirmar, cancelar e concluir
-- [ ] **Aba Portfólio** no painel: subir fotos pelo celular, escolher estilo e ordem
+- [x] **Aba Portfólio** no painel: subir fotos pelo celular, escolher estilo e ordem
 - [ ] Deploy na Vercel com domínio próprio
 - [ ] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
 - [ ] E-mails de senha saindo do Gmail do estúdio (SMTP)
