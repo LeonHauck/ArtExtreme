@@ -21,6 +21,8 @@ e reserva o horário com o **Mike**. Sem ficar perguntando "quanto fica?" no dir
 
 <br>
 
+### 🌐 [**artextreme.vercel.app**](https://artextreme.vercel.app)
+
 [**▶ Demo no computador**](#-no-computador) &nbsp;•&nbsp;
 [**📱 Demo no celular**](#-no-celular) &nbsp;•&nbsp;
 [**✦ @tattooartextremee**](https://instagram.com/tattooartextremee)
@@ -247,7 +249,8 @@ npm run dev                  # http://localhost:5173
 - [x] **Login do Mike** por e-mail e senha, com **"esqueci minha senha"**
 - [x] **WhatsApp com 1 toque** para pedir sinal, confirmar, cancelar e concluir
 - [x] **Aba Portfólio** no painel: subir fotos pelo celular, escolher estilo e ordem
-- [ ] Deploy na Vercel com domínio próprio
+- [x] **No ar na Vercel**: [artextreme.vercel.app](https://artextreme.vercel.app), com deploy automático a cada push
+- [ ] Domínio próprio (ex.: `artextreme.com.br`)
 - [ ] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
 - [ ] E-mails de senha saindo do Gmail do estúdio (SMTP)
 - [ ] WhatsApp 100% automático pela API oficial da Meta
