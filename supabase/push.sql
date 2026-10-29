@@ -42,3 +42,9 @@ end $$;
 revoke all on function public.save_push_subscription(text, text, text, text) from public, anon;
 grant execute on function public.save_push_subscription(text, text, text, text) to authenticated;
 grant select, delete on public.push_subscriptions to authenticated;
+
+-- A Edge Function notify-booking usa a chave interna (service_role): ela lê
+-- quem é admin e os aparelhos, e apaga os que não existem mais.
+grant usage on schema public to service_role;
+grant select on public.admins to service_role;
+grant select, delete on public.push_subscriptions to service_role;
