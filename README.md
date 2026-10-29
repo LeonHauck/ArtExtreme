@@ -143,6 +143,16 @@ Tudo isso mora em [`src/lib/pricing.ts`](src/lib/pricing.ts), coberto por testes
 | :---: |
 | <img src="docs/screenshots/portfolio.webp" alt="Portfólio"> |
 
+| Relatórios do Mike | No celular |
+| :---: | :---: |
+| <img src="docs/screenshots/relatorios.webp" alt="Relatórios: faturamento do mês, indicadores e gráfico por mês"> | <img src="docs/screenshots/relatorios-mobile.webp" alt="Relatórios no celular" width="260"> |
+
+| Estilos e locais campeões e clientes do mês |
+| :---: |
+| <img src="docs/screenshots/relatorios-estilos.webp" alt="Ranking de estilos e locais e lista de clientes"> |
+
+<sub>Prints com atendimentos fictícios, gerados só para demonstração.</sub>
+
 | No tablet | Painel do Mike no celular |
 | :---: | :---: |
 | <img src="docs/screenshots/home-tablet.webp" alt="Home no tablet" width="380"> | <img src="docs/screenshots/painel-estilos-mobile.webp" alt="Painel de estilos no celular" width="300"> |
