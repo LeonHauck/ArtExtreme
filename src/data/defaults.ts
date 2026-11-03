@@ -61,6 +61,8 @@ export const defaultPricing: PricingConfig = {
     colorMultiplier: 1.2,
     variance: 0.15,
     depositPercent: 0.3,
+    sizeMode: 'tier',
+    pricePerCm: 25,
   },
 }
 

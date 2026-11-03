@@ -4,7 +4,7 @@ export interface SizeTier {
   name: string
   /** Limite superior da faixa, em cm (inclusivo). */
   maxCm: number
-  /** Valor base da faixa, antes dos multiplicadores de área e estilo. */
+  /** Valor base da faixa, antes dos multiplicadores de área e estilo (não usado no modo por cm). */
   basePrice: number
   /** Duração estimada da sessão, em horas. Usada para reservar a agenda. */
   hours: number
@@ -28,6 +28,9 @@ export interface TattooStyle {
   featured?: boolean
 }
 
+/** Como o tamanho vira dinheiro: valor fixo por faixa, ou valor por centímetro. */
+export type SizePricingMode = 'tier' | 'perCm'
+
 export interface PricingSettings {
   /** Valor mínimo cobrado por qualquer tattoo. */
   minPrice: number
@@ -37,6 +40,10 @@ export interface PricingSettings {
   variance: number
   /** Percentual do sinal para garantir o horário (0.3 = 30%). */
   depositPercent: number
+  /** Faixa (padrão) ou por centímetro. Ausente = faixa (configurações antigas). */
+  sizeMode?: SizePricingMode
+  /** Valor de cada cm no modo por centímetro (maior lado da tattoo). */
+  pricePerCm?: number
 }
 
 export interface PricingConfig {

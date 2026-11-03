@@ -1,4 +1,4 @@
-import type { Estimate, EstimateItem, Placement, PricingConfig, SizeTier, TattooRequest, TattooStyle } from '@/types'
+import type { Estimate, EstimateItem, Placement, PricingConfig, PricingSettings, SizeTier, TattooRequest, TattooStyle } from '@/types'
 
 /** Arredonda para a dezena mais próxima: valores "de balcão". */
 const roundTo10 = (n: number) => Math.round(n / 10) * 10
@@ -14,10 +14,31 @@ export function findSizeTier(sizes: SizeTier[], cm: number): SizeTier | undefine
   return ordered.find((s) => cm <= s.maxCm) ?? ordered.at(-1)
 }
 
+/** Menor tamanho que o cliente consegue escolher no simulador. */
+export const MIN_SIZE_CM = 2
+
+export const DEFAULT_PRICE_PER_CM = 25
+
+export const isPerCm = (s: PricingSettings) => s.sizeMode === 'perCm'
+export const pricePerCm = (s: PricingSettings) => s.pricePerCm ?? DEFAULT_PRICE_PER_CM
+
+/** Valor do tamanho antes dos ajustes: o da faixa, ou cm × valor por cm. */
+export function sizeBase(config: PricingConfig, tier: SizeTier, cm: number): number {
+  return isPerCm(config.settings) ? cm * pricePerCm(config.settings) : tier.basePrice
+}
+
+/** "Tattoos a partir de R$ X": a menor tattoo possível, sem ajustes. */
+export function startingPrice(config: PricingConfig): number {
+  const { minPrice } = config.settings
+  const smallest = sortedSizes(config.sizes)[0]
+  if (!smallest) return minPrice
+  return Math.max(minPrice, roundTo10(sizeBase(config, smallest, MIN_SIZE_CM)))
+}
+
 /**
  * Valor de um único local:
- *   base da faixa × ajuste da área × ajuste do estilo × (cor ? ajuste de cor : 1)
- * respeitando o valor mínimo por tattoo.
+ *   tamanho (base da faixa, ou cm × valor por cm) × ajuste da área × ajuste do estilo × (cor ? ajuste de cor : 1)
+ * respeitando o valor mínimo por tattoo. A faixa sempre define a duração da sessão.
  */
 export function estimatePlacement(
   config: PricingConfig,
@@ -30,7 +51,7 @@ export function estimatePlacement(
   if (!tier || !area) return null
 
   const { minPrice, colorMultiplier } = config.settings
-  const raw = tier.basePrice * area.multiplier * style.multiplier * (color ? colorMultiplier : 1)
+  const raw = sizeBase(config, tier, p.sizeCm) * area.multiplier * style.multiplier * (color ? colorMultiplier : 1)
   const largest = sortedSizes(config.sizes).at(-1)!
 
   return {

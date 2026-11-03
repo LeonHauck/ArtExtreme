@@ -104,7 +104,7 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 - 📲 **Abre direto no painel**: no app instalado, o Mike logado cai na agenda; cliente continua vendo o site.
 - 💬 **WhatsApp com 1 toque**: "pedir sinal" (com valor e chave Pix), e ao confirmar, cancelar ou concluir o app abre o WhatsApp do cliente com a mensagem certa pronta. Na de "concluído" vão o link dos cuidados e o @ do Instagram.
 - 🏷️ **Tabela de preços 100% editável**:
-  - **Tamanhos**: faixas em cm, valor base e duração da sessão
+  - **Tamanhos**: cobra por **faixa** (valor fixo) ou por **centímetro** (ex.: R$ 25/cm), e cada faixa define a duração da sessão
   - **Áreas do corpo**: ajuste em % por região (costela dói mais, cobra mais 😅)
   - **Estilos**: ajuste por complexidade e marcação das especialidades em destaque
   - **Regras gerais**: valor mínimo, adicional de cor, margem da estimativa e % do sinal, com **exemplo de cálculo ao vivo**
@@ -119,11 +119,14 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 ## 🧮 Como o preço é calculado
 
 ```text
-valor de cada local = base da faixa × ajuste da área × ajuste do estilo × (colorida ? ajuste de cor : 1)
+tamanho             = valor da faixa   ou   cm × valor por cm   (o Mike escolhe no painel)
+valor de cada local = tamanho × ajuste da área × ajuste do estilo × (colorida ? ajuste de cor : 1)
                       └─ respeitando o valor mínimo por tattoo
 total               = soma dos locais
 o cliente vê        = total ± margem
 ```
+
+Exemplo por centímetro: 10 cm × R$ 25 = R$ 250 × Blackwork (+15%) = **R$ 290**. Mudou o percentual de um estilo no painel? A conta muda na hora, no site inteiro.
 
 Tudo isso mora em [`src/lib/pricing.ts`](src/lib/pricing.ts), coberto por testes. Ninguém quer orçamento errado. ✅
 

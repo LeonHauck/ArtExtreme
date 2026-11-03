@@ -19,7 +19,7 @@ import { InstagramIcon } from '@/components/ui/BrandIcons'
 import { Medal } from '@/components/ui/Medal'
 import { activeStyles, useStudio } from '@/store/studio'
 import { formatBRL } from '@/lib/format'
-import { sortedSizes } from '@/lib/pricing'
+import { startingPrice } from '@/lib/pricing'
 import { ARTIST, ASEPSIS, AWARDS, BIO, CARE_AVOID, CARE_GUIDE, TIMELINE } from '@/data/content'
 import { usePortfolioWorks } from '@/hooks/usePortfolioWorks'
 import { WorksCarousel } from '@/components/WorksCarousel'
@@ -355,8 +355,7 @@ function OtherStyles() {
   const pricing = useStudio((s) => s.pricing)
   const styles = useMemo(() => activeStyles(pricing.styles).filter((s) => !s.featured), [pricing.styles])
   const from = useMemo(() => {
-    const smallest = sortedSizes(pricing.sizes)[0]
-    return smallest ? Math.max(pricing.settings.minPrice, smallest.basePrice) : pricing.settings.minPrice
+    return startingPrice(pricing)
   }, [pricing])
   if (!styles.length) return null
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { estimate, findSizeTier } from './pricing'
+import { estimate, findSizeTier, startingPrice } from './pricing'
 import type { Placement, PricingConfig, TattooRequest } from '@/types'
 
 const config: PricingConfig = {
@@ -85,5 +85,44 @@ describe('estimate', () => {
     expect(estimate(config, req({ placements: [] }))).toBeNull()
     expect(estimate(config, req({ placements: [place({ areaId: 'x' })] }))).toBeNull()
     expect(estimate(config, req({ styleId: 'x' }))).toBeNull()
+  })
+})
+
+describe('cobrança por centímetro', () => {
+  const perCm = { ...config, settings: { ...config.settings, minPrice: 180, sizeMode: 'perCm' as const, pricePerCm: 25 } }
+
+  it('multiplica os cm pelo valor por cm e depois aplica o estilo', () => {
+    // 10 cm × R$ 25 = 250 × Realismo 1,25 = 312,5 → 310
+    const e = estimate(perCm, req({ placements: [place({ sizeCm: 10 })] }))!
+    expect(e.value).toBe(310)
+    // 18 cm = 450 × 1,25 = 562,5 → 560 (mesma faixa "Grande" teria 1250)
+    expect(estimate(perCm, req({ placements: [place({ sizeCm: 18 })] }))!.value).toBe(560)
+  })
+
+  it('cada cm a mais muda o valor (não fica preso na faixa)', () => {
+    const v = (cm: number) => estimate(perCm, req({ placements: [place({ sizeCm: cm })] }))!.value
+    expect(v(12)).toBeLessThan(v(16))
+  })
+
+  it('aplica área, cor e o valor mínimo', () => {
+    // costela 1,5 · 10 cm: 250 × 1,5 × 1,25 = 468,75 → 470; colorida × 1,2 = 562,5 → 560
+    expect(estimate(perCm, req({ placements: [place({ areaId: 'costela', sizeCm: 10 })] }))!.value).toBe(470)
+    expect(estimate(perCm, req({ placements: [place({ areaId: 'costela', sizeCm: 10 })], color: true }))!.value).toBe(560)
+    // 4 cm = 100 × 1,25 = 125 → mínimo 180
+    expect(estimate(perCm, req({ placements: [place({ sizeCm: 4 })] }))!.value).toBe(180)
+  })
+
+  it('a duração continua vindo da faixa', () => {
+    expect(estimate(perCm, req({ placements: [place({ sizeCm: 15 })] }))!.hours).toBe(4)
+  })
+
+  it('"a partir de" usa a menor tattoo possível', () => {
+    expect(startingPrice(perCm)).toBe(180) // 2 cm × 25 = 50 → mínimo
+    expect(startingPrice({ ...perCm, settings: { ...perCm.settings, minPrice: 0 } })).toBe(50)
+    expect(startingPrice(config)).toBe(400) // modo faixa: menor faixa
+  })
+
+  it('configuração antiga (sem modo) continua por faixa', () => {
+    expect(estimate(config, req())!.value).toBe(500)
   })
 })

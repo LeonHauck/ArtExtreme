@@ -4,7 +4,7 @@ import { useStudio } from '@/store/studio'
 import { NumberField, PercentAdjustField } from '@/components/ui/NumberField'
 import { Toggle } from '@/components/ui/Toggle'
 import { ZONES } from '@/components/body3d/zones'
-import { estimate, sortedSizes } from '@/lib/pricing'
+import { MIN_SIZE_CM, estimate, isPerCm, pricePerCm, sortedSizes } from '@/lib/pricing'
 import { formatBRL, formatHours, uid } from '@/lib/format'
 
 type Tab = 'sizes' | 'areas' | 'styles' | 'rules'
@@ -54,11 +54,62 @@ function AddButton({ onClick, children }: { onClick: () => void; children: React
   )
 }
 
+/** Faixa fixa ou valor por centímetro: escolhido no topo da aba Tamanhos. */
+function SizeModeCard() {
+  const settings = useStudio((s) => s.pricing.settings)
+  const update = useStudio((s) => s.updatePricingSettings)
+  const perCm = isPerCm(settings)
+  const options = [
+    { id: 'tier' as const, label: 'Faixa de tamanho', hint: 'Um valor fixo por faixa (ex.: até 10 cm = R$ 350).' },
+    { id: 'perCm' as const, label: 'Centímetro', hint: 'Cada cm do maior lado soma um valor (ex.: R$ 25 por cm).' },
+  ]
+  return (
+    <div className="card p-4 sm:p-5">
+      <span className="label text-[0.7rem]">Cobrar o tamanho por</span>
+      <div className="mt-1 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Cobrar o tamanho por">
+        {options.map((o) => {
+          const active = (o.id === 'perCm') === perCm
+          return (
+            <button
+              key={o.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => update({ sizeMode: o.id })}
+              className={`rounded-md border p-3 text-left transition ${active ? 'border-violet bg-violet/10' : 'border-bone/10 hover:border-bone/30'}`}
+            >
+              <span className="flex items-center gap-2 font-semibold">
+                <span className={`h-3.5 w-3.5 rounded-full border-2 ${active ? 'border-violet bg-violet' : 'border-bone/40'}`} />
+                {o.label}
+              </span>
+              <span className="mt-1 block text-xs text-mute">{o.hint}</span>
+            </button>
+          )
+        })}
+      </div>
+      {perCm && (
+        <div className="mt-4 flex flex-wrap items-end gap-4">
+          <Field label="Valor por cm" className="w-40">
+            <NumberField value={pricePerCm(settings)} min={1} prefix="R$" onCommit={(pricePerCm) => update({ pricePerCm })} />
+          </Field>
+          <p className="max-w-md pb-2 text-xs text-mute">
+            Conta: cm × {formatBRL(pricePerCm(settings))} × ajuste da área × ajuste do estilo (× cor). As faixas abaixo
+            continuam definindo a duração da sessão.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SizesTab() {
   const sizes = useStudio((s) => s.pricing.sizes)
+  const settings = useStudio((s) => s.pricing.settings)
   const upsert = useStudio((s) => s.upsertPricingItem)
   const remove = useStudio((s) => s.removePricingItem)
   const ordered = useMemo(() => sortedSizes(sizes), [sizes])
+  const perCm = isPerCm(settings)
+  const cm = pricePerCm(settings)
 
   const add = () => {
     const last = ordered.at(-1)
@@ -73,9 +124,11 @@ function SizesTab() {
 
   return (
     <div className="space-y-3">
+      <SizeModeCard />
       <p className="text-sm text-mute">
         O tamanho informado pelo cliente (maior lado, em cm) cai na primeira faixa cujo limite seja maior ou igual a
         ele. A duração é usada para bloquear o tempo certo na agenda.
+        {perCm && ' No modo por centímetro, o valor da faixa é calculado (antes dos ajustes de área e estilo).'}
       </p>
       {ordered.map((s, i) => (
         <div key={s.id} className="card grid grid-cols-2 gap-3 p-4 sm:grid-cols-[1.6fr_1fr_1.2fr_1fr_auto] sm:items-end">
@@ -85,9 +138,17 @@ function SizesTab() {
           <Field label={i === 0 ? 'Até' : `De ${ordered[i - 1].maxCm + 1} até`}>
             <NumberField value={s.maxCm} min={1} suffix="cm" onCommit={(maxCm) => upsert('sizes', { ...s, maxCm })} />
           </Field>
-          <Field label="Valor base">
-            <NumberField value={s.basePrice} min={0} prefix="R$" onCommit={(basePrice) => upsert('sizes', { ...s, basePrice })} />
-          </Field>
+          {perCm ? (
+            <Field label="Valor (sem ajustes)">
+              <p className="flex h-[46px] items-center text-sm text-bone/90">
+                {formatBRL((i === 0 ? MIN_SIZE_CM : ordered[i - 1].maxCm + 1) * cm)} a {formatBRL(s.maxCm * cm)}
+              </p>
+            </Field>
+          ) : (
+            <Field label="Valor base">
+              <NumberField value={s.basePrice} min={0} prefix="R$" onCommit={(basePrice) => upsert('sizes', { ...s, basePrice })} />
+            </Field>
+          )}
           <Field label="Duração">
             <NumberField value={s.hours} min={0.5} max={12} suffix="h" onCommit={(hours) => upsert('sizes', { ...s, hours })} />
           </Field>
@@ -281,7 +342,8 @@ function RulesTab() {
         <div className="card p-5">
           <p className="eyebrow">Como o cálculo funciona</p>
           <p className="mt-3 text-sm text-mute">
-            Valor base da faixa × ajuste da área × ajuste do estilo × ajuste de cor. O cliente vê uma faixa de ±
+            {isPerCm(settings) ? `Tamanho em cm × ${formatBRL(pricePerCm(settings))}` : 'Valor base da faixa'} × ajuste da área ×
+            ajuste do estilo × ajuste de cor, respeitando o valor mínimo. O cliente vê uma faixa de ±
             {Math.round(settings.variance * 100)}% em volta do resultado.
           </p>
           <div className="mt-5 rounded-sm bg-ash p-4 text-sm">

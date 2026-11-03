@@ -6,7 +6,7 @@ import { ZONES } from '@/components/body3d/zones'
 import { EstimateCard } from '@/components/EstimateCard'
 import { Toggle } from '@/components/ui/Toggle'
 import { useEstimate } from '@/hooks/useEstimate'
-import { sortedSizes } from '@/lib/pricing'
+import { MIN_SIZE_CM, sortedSizes } from '@/lib/pricing'
 import { formatBRL } from '@/lib/format'
 import { waLink } from '@/lib/whatsapp'
 import type { BodyArea } from '@/types'
@@ -198,7 +198,7 @@ export default function Simulator() {
                       <input
                         type="range"
                         className="range mt-4"
-                        min={2}
+                        min={MIN_SIZE_CM}
                         max={maxCm}
                         value={p.sizeCm}
                         onChange={(e) => setPlacementSize(p.index, Number(e.target.value))}
