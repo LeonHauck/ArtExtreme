@@ -7,7 +7,7 @@ import { EstimateCard } from '@/components/EstimateCard'
 import { Toggle } from '@/components/ui/Toggle'
 import { useEstimate } from '@/hooks/useEstimate'
 import { MIN_SIZE_CM, sortedSizes } from '@/lib/pricing'
-import { formatBRL } from '@/lib/format'
+import { formatBRL, formatPriceRange } from '@/lib/format'
 import { waLink } from '@/lib/whatsapp'
 import type { BodyArea } from '@/types'
 
@@ -296,7 +296,7 @@ export default function Simulator() {
               Estimativa{placements.length > 1 ? ` · ${placements.length} locais` : ''}
             </p>
             <p className="truncate font-display text-2xl tracking-wide tabular-nums">
-              {ready && estimate ? `${formatBRL(estimate.low)} – ${formatBRL(estimate.high)}` : `Falta ${missing.join(' e ')}`}
+              {ready && estimate ? formatPriceRange(estimate.low, estimate.high) : `Falta ${missing.join(' e ')}`}
             </p>
           </div>
           <button className="btn btn-primary btn-sm shrink-0" disabled={!ready} onClick={goBook}>

@@ -5,7 +5,7 @@ import { NumberField, PercentAdjustField } from '@/components/ui/NumberField'
 import { Toggle } from '@/components/ui/Toggle'
 import { ZONES } from '@/components/body3d/zones'
 import { MIN_SIZE_CM, estimate, isPerCm, pricePerCm, sortedSizes } from '@/lib/pricing'
-import { formatBRL, formatHours, uid } from '@/lib/format'
+import { formatBRL, formatHours, uid, formatPriceRange } from '@/lib/format'
 
 type Tab = 'sizes' | 'areas' | 'styles' | 'rules'
 const TABS: { id: Tab; label: string }[] = [
@@ -351,10 +351,10 @@ function RulesTab() {
               Exemplo: 10 cm · {sample.area.name} · {sample.style.name}
             </p>
             <p className="mt-2 font-display text-3xl tracking-wide">
-              {formatBRL(sample.result.low)} – {formatBRL(sample.result.high)}
+              {formatPriceRange(sample.result.low, sample.result.high)}
             </p>
             <p className="mt-1 text-mute">
-              Colorida: {formatBRL(sample.colored!.low)} – {formatBRL(sample.colored!.high)} · sessão ~
+              Colorida: {formatPriceRange(sample.colored!.low, sample.colored!.high)} · sessão ~
               {formatHours(sample.result.hours)} · sinal {formatBRL(sample.result.deposit)}
             </p>
           </div>

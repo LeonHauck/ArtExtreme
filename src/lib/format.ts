@@ -94,3 +94,8 @@ export function parseMoney(input: string): number | null {
   if (/^\d{1,3}(\.\d{3})+$/.test(s)) return Number(s.replace(/\./g, ''))
   return Number(s)
 }
+
+/** Faixa de preço: "R$ 340 – R$ 460", ou um valor só quando não há margem ("R$ 400"). */
+export function formatPriceRange(low: number, high: number, sep = ' – '): string {
+  return Math.round(low) === Math.round(high) ? formatBRL(low) : `${formatBRL(low)}${sep}${formatBRL(high)}`
+}

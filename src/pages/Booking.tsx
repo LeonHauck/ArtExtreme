@@ -7,7 +7,7 @@ import { availableSlots, bookableDates, type BusySlot } from '@/lib/schedule'
 import { createBooking, fetchBusy, SlotTakenError } from '@/lib/bookingsRepo'
 import { uploadReference } from '@/lib/referenceRepo'
 import { FIRST_TATTOO_TIPS, REASON_TEXT, evaluationReason } from '@/lib/triage'
-import { formatBRL, formatDateLong, formatHours, maskPhone, onlyDigits, parseISODate, uid } from '@/lib/format'
+import { formatBRL, formatDateLong, formatHours, maskPhone, onlyDigits, parseISODate, uid, formatPriceRange } from '@/lib/format'
 import { bookingMessageToStudio, waLink } from '@/lib/whatsapp'
 import { WhatsAppIcon } from '@/components/ui/BrandIcons'
 import { Ornament } from '@/components/ui/Ornament'
@@ -283,7 +283,7 @@ export default function Booking() {
             <p className="text-rave font-display text-2xl tracking-wide tabular-nums">
               {evaluation
                 ? `a partir de ${formatBRL(estimate.low)}`
-                : `${formatBRL(estimate.low)} – ${formatBRL(estimate.high)}`}
+                : formatPriceRange(estimate.low, estimate.high)}
             </p>
             <p className="text-xs text-mute">{evaluation ? 'valor final na avaliação' : 'estimativa'}</p>
           </div>

@@ -13,7 +13,7 @@ import { referenceUrl } from '@/lib/referenceRepo'
 import { COVER_LABEL, isEvaluation, isOpenEvaluation } from '@/lib/triage'
 import { useStudio } from '@/store/studio'
 import type { Booking, BookingStatus } from '@/types'
-import { formatBRL, formatDateLong, formatHours, maskPhone, parseMoney, toISODate } from '@/lib/format'
+import { formatBRL, formatDateLong, formatHours, maskPhone, parseMoney, toISODate, formatPriceRange } from '@/lib/format'
 import { clientMessage, clientWhatsApp, waLink, type ClientMessageKind } from '@/lib/whatsapp'
 import { WhatsAppIcon, InstagramIcon } from '@/components/ui/BrandIcons'
 import { PushBanner } from '@/components/admin/PushControls'
@@ -269,7 +269,7 @@ function BookingCard({ b, setStatus, finish, schedule, remove }: { b: Booking } 
           ) : (
             <p className="mt-2 text-sm">
               <span className="text-violet-light">
-                {formatBRL(b.estimate.low)} – {formatBRL(b.estimate.high)}
+                {formatPriceRange(b.estimate.low, b.estimate.high)}
               </span>
               <span className="text-mute"> · sinal {formatBRL(b.estimate.deposit)}</span>
             </p>

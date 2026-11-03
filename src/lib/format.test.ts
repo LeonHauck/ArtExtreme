@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseMoney } from './format'
+import { formatPriceRange, parseMoney } from './format'
 
 describe('parseMoney', () => {
   it('entende os jeitos comuns de digitar valor', () => {
@@ -11,5 +11,13 @@ describe('parseMoney', () => {
     expect(parseMoney('R$ 2.000')).toBe(2000)
     expect(parseMoney('  ')).toBeNull()
     expect(parseMoney('abc')).toBeNaN()
+  })
+})
+
+describe('formatPriceRange', () => {
+  it('mostra a faixa, ou um valor só quando a margem é zero', () => {
+    expect(formatPriceRange(340, 460).replace(/\s/g, ' ')).toBe('R$ 340 – R$ 460')
+    expect(formatPriceRange(400, 400).replace(/\s/g, ' ')).toBe('R$ 400')
+    expect(formatPriceRange(340, 460, ' a ').replace(/\s/g, ' ')).toBe('R$ 340 a R$ 460')
   })
 })

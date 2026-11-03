@@ -1,5 +1,5 @@
 import type { Booking, StudioInfo } from '@/types'
-import { formatBRL, formatDateLong, formatHours, onlyDigits } from './format'
+import { formatBRL, formatDateLong, formatHours, onlyDigits, formatPriceRange } from './format'
 import { COVER_LABEL, FIRST_TATTOO_TIPS } from './triage'
 
 export function waLink(phone: string, text: string): string {
@@ -26,7 +26,7 @@ export function bookingMessageToStudio(b: Booking): string {
     t.description ? `*Ideia:* ${t.description}` : null,
     evaluation
       ? `*Estimativa inicial:* a partir de ${formatBRL(b.estimate.low)}`
-      : `*Estimativa:* ${formatBRL(b.estimate.low)} a ${formatBRL(b.estimate.high)} (~${formatHours(b.estimate.hours)})`,
+      : `*Estimativa:* ${formatPriceRange(b.estimate.low, b.estimate.high, ' a ')} (~${formatHours(b.estimate.hours)})`,
     ``,
     b.referencePath
       ? `Já mandei a foto pelo app, mas posso enviar mais referências por aqui.`
@@ -63,7 +63,7 @@ export function clientMessage(kind: ClientMessageKind, b: Booking, studio: Studi
         ``,
         `Recebi seu pedido para *${when}*:`,
         `• ${t.styleName}${t.color ? ' colorida' : ''} · ${places}`,
-        `• Estimativa: ${formatBRL(b.estimate.low)} a ${formatBRL(b.estimate.high)}`,
+        `• Estimativa: ${formatPriceRange(b.estimate.low, b.estimate.high, ' a ')}`,
         ``,
         `Para garantir o horário, o sinal é de *${formatBRL(b.estimate.deposit)}* (abatido no valor final).`,
         studio.pixKey ? `Pix: *${studio.pixKey}*` : null,

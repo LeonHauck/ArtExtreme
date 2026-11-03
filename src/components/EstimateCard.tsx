@@ -24,8 +24,12 @@ export function EstimateCard({ estimate, missing, labels = [], children }: Estim
         <div className="relative">
           <p className="text-rave mt-2 font-display text-5xl tracking-wide tabular-nums">
             {formatBRL(estimate.low)}
-            <span className="mx-2 text-3xl">–</span>
-            {formatBRL(estimate.high)}
+            {Math.round(estimate.low) !== Math.round(estimate.high) && (
+              <>
+                <span className="mx-2 text-3xl">–</span>
+                {formatBRL(estimate.high)}
+              </>
+            )}
           </p>
 
           {/* Detalhamento por local (só quando há mais de um) */}
