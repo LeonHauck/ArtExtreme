@@ -268,7 +268,6 @@ npm run dev                  # http://localhost:5173
 - [x] **WhatsApp com 1 toque** para pedir sinal, confirmar, cancelar e concluir
 - [x] **Aba Portfólio** no painel: subir fotos pelo celular, escolher estilo e ordem
 - [x] **No ar na Vercel**: [artextreme.vercel.app](https://artextreme.vercel.app), com deploy automático a cada push
-- [ ] Domínio próprio (ex.: `artextreme.com.br`)
 - [x] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
 - [x] **Relatórios** com faturamento, clientes, estilos e locais por mês e por ano
 - [ ] E-mails de senha saindo do Gmail do estúdio (SMTP)
