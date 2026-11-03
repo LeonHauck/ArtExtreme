@@ -7,6 +7,7 @@ import { PushSettings } from '@/components/admin/PushControls'
 import { updatePassword, useAuth } from '@/store/auth'
 import { isRemote } from '@/lib/supabase'
 import { formatDateShort, onlyDigits, toISODate } from '@/lib/format'
+import { fromMinutes } from '@/lib/schedule'
 import type { StudioInfo } from '@/types'
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -91,7 +92,7 @@ function SchedulePanel() {
         ))}
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <label className="block">
           <span className="label">Abre</span>
           <input type="time" className="input" value={schedule.open} onChange={(e) => e.target.value && update({ open: e.target.value })} />
@@ -118,7 +119,23 @@ function SchedulePanel() {
           <span className="label">Agenda aberta</span>
           <NumberField value={schedule.daysAhead} min={7} max={365} suffix="dias" onCommit={(daysAhead) => update({ daysAhead })} />
         </div>
+        <div>
+          <span className="label">Pausa entre sessões</span>
+          <NumberField
+            value={schedule.bufferMinutes ?? 0}
+            min={0}
+            max={180}
+            suffix="min"
+            onCommit={(bufferMinutes) => update({ bufferMinutes: Math.round(bufferMinutes) })}
+          />
+        </div>
       </div>
+      <p className="mt-2 text-xs text-mute">
+        Pausa: tempo livre antes e depois de cada sessão (limpeza, montar a bancada, um respiro).{' '}
+        {(schedule.bufferMinutes ?? 0) > 0
+          ? `Hoje: ${schedule.bufferMinutes} min. Exemplo: sessão até 15h, o próximo cliente pode começar a partir de ${fromMinutes(15 * 60 + (schedule.bufferMinutes ?? 0)).replace(':00', 'h').replace(':', 'h')}.`
+          : 'Com 0 min não há pausa: uma sessão pode começar logo que a outra termina.'}
+      </p>
 
       <div className="mt-6">
         <span className="label">Folgas e datas bloqueadas</span>

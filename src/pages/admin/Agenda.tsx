@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Check, CheckCheck, Inbox, Loader2, Pencil, RefreshCw, Trash2, X } from 'lucide-react'
-import { deleteBooking, listBookings, onBookingsChange, setBookingDone, setBookingStatus, SlotTakenError } from '@/lib/bookingsRepo'
+import { CalendarPlus, Check, CheckCheck, ClipboardCheck, ImageOff, Inbox, Loader2, Pencil, RefreshCw, Sparkles, Trash2, X } from 'lucide-react'
+import {
+  deleteBooking,
+  listBookings,
+  onBookingsChange,
+  scheduleEvaluation,
+  setBookingDone,
+  setBookingStatus,
+  SlotTakenError,
+} from '@/lib/bookingsRepo'
+import { referenceUrl } from '@/lib/referenceRepo'
+import { COVER_LABEL, isEvaluation, isOpenEvaluation } from '@/lib/triage'
 import { useStudio } from '@/store/studio'
 import type { Booking, BookingStatus } from '@/types'
 import { formatBRL, formatDateLong, formatHours, maskPhone, parseMoney, toISODate } from '@/lib/format'
@@ -40,7 +50,100 @@ function Stat({ label, value, accent = false }: { label: string; value: string |
 interface CardActions {
   setStatus: (id: string, status: BookingStatus) => void
   finish: (id: string, price: number | null) => void
-  remove: (id: string) => void
+  schedule: (b: Booking, date: string, time: string, hours: number) => void
+  remove: (b: Booking) => void
+}
+
+/** Etiquetas da triagem: primeira tattoo, cobertura/reforma, projeto grande. */
+function TriageTags({ b }: { b: Booking }) {
+  const big = isEvaluation(b) && !b.cover
+  return (
+    <>
+      {b.firstTattoo && (
+        <span className="inline-flex items-center gap-1 rounded-full border border-sun/40 bg-sun/10 px-2 py-0.5 text-[0.7rem] font-medium text-sun">
+          <Sparkles size={11} /> 1ª tattoo
+        </span>
+      )}
+      {b.cover && (
+        <span className="rounded-full border border-pink/40 bg-pink/10 px-2 py-0.5 text-[0.7rem] font-medium text-pink">
+          {COVER_LABEL[b.cover]}
+        </span>
+      )}
+      {big && (
+        <span className="rounded-full border border-flame/40 bg-flame/10 px-2 py-0.5 text-[0.7rem] font-medium text-flame">
+          Projeto grande
+        </span>
+      )}
+    </>
+  )
+}
+
+/** Foto de referência (armazenamento privado: o link vale 1 hora). */
+function ReferencePhoto({ path }: { path: string }) {
+  const [url, setUrl] = useState<string | null | undefined>(undefined)
+  useEffect(() => {
+    let alive = true
+    void referenceUrl(path)
+      .catch(() => null)
+      .then((u) => alive && setUrl(u))
+    return () => {
+      alive = false
+    }
+  }, [path])
+  if (url === undefined) return <div className="h-16 w-16 animate-pulse rounded-md bg-ash sm:h-24 sm:w-24" />
+  if (!url)
+    return (
+      <div className="flex h-16 w-16 flex-col items-center sm:h-24 sm:w-24 justify-center gap-1 rounded-md bg-ash text-[0.65rem] text-mute">
+        <ImageOff size={18} /> sem foto
+      </div>
+    )
+  return (
+    <a href={url} target="_blank" rel="noreferrer" title="Abrir foto em tamanho real" className="block">
+      <img src={url} alt="Foto de referência enviada pelo cliente" className="h-16 w-16 rounded-md object-cover ring-1 sm:h-24 sm:w-24 ring-bone/10 transition hover:ring-violet" />
+    </a>
+  )
+}
+
+/** Avaliação aprovada: escolher dia, horário e duração. */
+function ScheduleForm({ b, onSave, onCancel }: { b: Booking; onSave: (date: string, time: string, hours: number) => void; onCancel: () => void }) {
+  const tomorrow = toISODate(new Date(Date.now() + 86400000))
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('10:00')
+  const [hours, setHours] = useState(String(b.estimate.hours))
+  const h = Number(hours.replace(',', '.'))
+  const valid = date >= tomorrow && /^\d{2}:\d{2}$/.test(time) && h > 0 && h <= 12
+  return (
+    <form
+      className="mt-4 rounded-md border border-violet/30 bg-violet/5 p-3"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (valid) onSave(date, time, h)
+      }}
+    >
+      <p className="text-sm font-semibold">Agendar a sessão</p>
+      <p className="text-xs text-mute">Vira um horário confirmado na agenda. Depois é só avisar o cliente.</p>
+      <div className="mt-2 flex flex-wrap items-end gap-2">
+        <label className="text-xs text-mute">
+          Dia
+          <input type="date" className="input mt-1 py-2 text-sm" min={tomorrow} value={date} onChange={(e) => setDate(e.target.value)} />
+        </label>
+        <label className="text-xs text-mute">
+          Início
+          <input type="time" className="input mt-1 w-28 py-2 text-sm" step={1800} value={time} onChange={(e) => setTime(e.target.value)} />
+        </label>
+        <label className="text-xs text-mute">
+          Duração (h)
+          <input className="input mt-1 w-20 py-2 text-sm" inputMode="decimal" value={hours} onChange={(e) => setHours(e.target.value)} />
+        </label>
+        <button className="btn btn-primary btn-sm" disabled={!valid}>
+          <CalendarPlus size={15} /> Agendar
+        </button>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+          Voltar
+        </button>
+      </div>
+    </form>
+  )
 }
 
 /** "Quanto você cobrou?" ao concluir (ou para corrigir depois). Vai para os Relatórios. */
@@ -90,25 +193,42 @@ function useClientWa() {
   return (kind: ClientMessageKind, b: Booking) => waLink(clientWhatsApp(b), clientMessage(kind, b, studio, window.location.origin))
 }
 
-function BookingCard({ b, setStatus, finish, remove }: { b: Booking } & CardActions) {
+function BookingCard({ b, setStatus, finish, schedule, remove }: { b: Booking } & CardActions) {
   const wa = useClientWa()
   const [finishing, setFinishing] = useState(false)
+  const [scheduling, setScheduling] = useState(false)
   const st = STATUS[b.status]
+  const evaluation = isEvaluation(b)
+  const openEvaluation = isOpenEvaluation(b)
   const active = b.status === 'pending' || b.status === 'confirmed'
 
   return (
-    <article className="card p-4 sm:p-5">
+    <article className={`card p-4 sm:p-5 ${openEvaluation ? 'border-violet/35' : ''}`}>
       <div className="flex items-start gap-4">
         <div className="w-16 shrink-0 text-center">
-          <p className="font-display text-2xl leading-none tracking-wide">{b.time}</p>
-          <p className="mt-1 text-xs text-mute">{formatHours(b.estimate.hours)}</p>
+          {evaluation ? (
+            <>
+              <ClipboardCheck size={24} className="mx-auto text-violet-light" />
+              <p className="mt-1 text-xs text-mute">avaliar</p>
+            </>
+          ) : (
+            <>
+              <p className="font-display text-2xl leading-none tracking-wide">{b.time}</p>
+              <p className="mt-1 text-xs text-mute">{formatHours(b.estimate.hours)}</p>
+            </>
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold">{b.client.name}</h3>
-            <span className={`rounded-full border px-2 py-0.5 text-[0.7rem] font-medium ${st.className}`}>
-              {st.label}
-            </span>
+            {openEvaluation ? (
+              <span className="rounded-full border border-violet/40 bg-violet/10 px-2 py-0.5 text-[0.7rem] font-medium text-violet-light">
+                Avaliação
+              </span>
+            ) : (
+              <span className={`rounded-full border px-2 py-0.5 text-[0.7rem] font-medium ${st.className}`}>{st.label}</span>
+            )}
+            <TriageTags b={b} />
           </div>
           <p className="mt-1 text-sm text-bone/90">
             {b.tattoo.styleName}
@@ -141,6 +261,11 @@ function BookingCard({ b, setStatus, finish, remove }: { b: Booking } & CardActi
                 </button>
               )}
             </p>
+          ) : openEvaluation ? (
+            <p className="mt-2 text-sm">
+              <span className="text-violet-light">a partir de {formatBRL(b.estimate.low)}</span>
+              <span className="text-mute"> · estimativa do app, ~{formatHours(b.estimate.hours)}</span>
+            </p>
           ) : (
             <p className="mt-2 text-sm">
               <span className="text-violet-light">
@@ -163,7 +288,23 @@ function BookingCard({ b, setStatus, finish, remove }: { b: Booking } & CardActi
             )}
           </p>
         </div>
+        {b.referencePath && (
+          <div className="shrink-0">
+            <ReferencePhoto path={b.referencePath} />
+          </div>
+        )}
       </div>
+
+      {scheduling && (
+        <ScheduleForm
+          b={b}
+          onCancel={() => setScheduling(false)}
+          onSave={(date, time, hours) => {
+            setScheduling(false)
+            schedule(b, date, time, hours)
+          }}
+        />
+      )}
 
       {finishing && (
         <FinishForm
@@ -177,7 +318,22 @@ function BookingCard({ b, setStatus, finish, remove }: { b: Booking } & CardActi
       )}
 
       <div className="mt-4 flex flex-wrap gap-2 border-t border-bone/5 pt-3">
-        {b.status === 'pending' ? (
+        {openEvaluation ? (
+          <>
+            <a href={wa('evaluation', b)} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+              <WhatsAppIcon size={15} /> Responder
+            </a>
+            <button className="btn btn-outline btn-sm" onClick={() => setScheduling(true)} disabled={scheduling}>
+              <CalendarPlus size={15} /> Agendar
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => confirm(`Recusar o pedido de ${b.client.name}?`) && setStatus(b.id, 'cancelled')}
+            >
+              <X size={15} /> Recusar
+            </button>
+          </>
+        ) : b.status === 'pending' ? (
           <a href={wa('deposit', b)} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" title="Mensagem com o valor do sinal e o Pix">
             <WhatsAppIcon size={15} /> Pedir sinal
           </a>
@@ -186,7 +342,7 @@ function BookingCard({ b, setStatus, finish, remove }: { b: Booking } & CardActi
             <WhatsAppIcon size={15} /> Conversar
           </a>
         )}
-        {b.status === 'pending' && (
+        {b.status === 'pending' && !evaluation && (
           <button className="btn btn-outline btn-sm" onClick={() => setStatus(b.id, 'confirmed')}>
             <Check size={15} /> Confirmar
           </button>
@@ -196,7 +352,7 @@ function BookingCard({ b, setStatus, finish, remove }: { b: Booking } & CardActi
             <CheckCheck size={15} /> Concluir
           </button>
         )}
-        {active && (
+        {active && !openEvaluation && (
           <button className="btn btn-ghost btn-sm" onClick={() => setStatus(b.id, 'cancelled')}>
             <X size={15} /> Cancelar
           </button>
@@ -204,7 +360,7 @@ function BookingCard({ b, setStatus, finish, remove }: { b: Booking } & CardActi
         {!active && (
           <button
             className="btn btn-ghost btn-sm ml-auto"
-            onClick={() => confirm('Excluir este agendamento?') && remove(b.id)}
+            onClick={() => confirm('Excluir este agendamento?') && remove(b)}
             aria-label="Excluir"
           >
             <Trash2 size={15} />
@@ -257,7 +413,17 @@ function useAdminBookings() {
   const setStatus = async (id: string, status: BookingStatus) => {
     const booking = bookings?.find((b) => b.id === id)
     const ok = await run(() => setBookingStatus(id, status))
-    if (ok && booking && status !== 'pending') setNotice({ booking: { ...booking, status }, kind: status })
+    // Avaliação recusada não tem "horário cancelado": o Mike responde do jeito dele
+    if (ok && booking && status !== 'pending' && !isEvaluation(booking)) setNotice({ booking: { ...booking, status }, kind: status })
+  }
+
+  const schedule = async (b: Booking, date: string, time: string, hours: number) => {
+    const ok = await run(() => scheduleEvaluation(b, date, time, hours))
+    if (ok)
+      setNotice({
+        booking: { ...b, kind: 'session', date, time, status: 'confirmed', estimate: { ...b.estimate, hours } },
+        kind: 'confirmed',
+      })
   }
 
   const finish = async (id: string, price: number | null) => {
@@ -275,22 +441,30 @@ function useAdminBookings() {
     dismissNotice: () => setNotice(null),
     setStatus: (id: string, status: BookingStatus) => void setStatus(id, status),
     finish: (id: string, price: number | null) => void finish(id, price),
-    remove: (id: string) => void run(() => deleteBooking(id)),
+    schedule: (b: Booking, date: string, time: string, hours: number) => void schedule(b, date, time, hours),
+    remove: (b: Booking) => void run(() => deleteBooking(b.id, b.referencePath)),
   }
 }
 
 export default function Agenda() {
-  const { bookings: loaded, error, refresh, notice, dismissNotice, setStatus, finish, remove } = useAdminBookings()
+  const { bookings: loaded, error, refresh, notice, dismissNotice, ...actions } = useAdminBookings()
   const wa = useClientWa()
   const bookings = useMemo(() => loaded ?? [], [loaded])
   const [filter, setFilter] = useState<Filter>('upcoming')
   const today = toISODate(new Date())
 
+  // Avaliações abertas ficam sempre no topo, fora dos filtros
+  const evaluations = useMemo(
+    () => bookings.filter(isOpenEvaluation).sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    [bookings],
+  )
+
   const stats = useMemo(() => {
-    const upcoming = bookings.filter((b) => b.date >= today)
+    const sessions = bookings.filter((b) => !isEvaluation(b))
+    const upcoming = sessions.filter((b) => b.date >= today)
     const confirmed = upcoming.filter((b) => b.status === 'confirmed')
     return {
-      pending: bookings.filter((b) => b.status === 'pending').length,
+      pending: sessions.filter((b) => b.status === 'pending').length,
       confirmed: confirmed.length,
       forecast: confirmed.reduce((sum, b) => sum + b.estimate.value, 0),
       done: bookings.filter((b) => b.status === 'done').length,
@@ -300,6 +474,9 @@ export default function Agenda() {
   const groups = useMemo(() => {
     const list = bookings
       .filter((b) => {
+        // Avaliação aberta já aparece no topo; recusada vai para o histórico
+        if (isOpenEvaluation(b)) return false
+        if (isEvaluation(b)) return filter === 'history' || filter === 'all'
         if (filter === 'upcoming') return b.date >= today && (b.status === 'pending' || b.status === 'confirmed')
         if (filter === 'pending') return b.status === 'pending'
         if (filter === 'history') return b.date < today || b.status === 'done' || b.status === 'cancelled'
@@ -348,6 +525,22 @@ export default function Agenda() {
         </p>
       )}
 
+      {evaluations.length > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-3 flex items-center gap-2 font-display text-lg tracking-widest text-violet-light uppercase">
+            <ClipboardCheck size={18} /> Avaliações · {evaluations.length}
+          </h2>
+          <p className="-mt-1 mb-3 text-xs text-mute">
+            Cobertura, reforma e projetos grandes. Olhe a foto, responda no WhatsApp e agende quando fechar.
+          </p>
+          <div className="space-y-3">
+            {evaluations.map((b) => (
+              <BookingCard key={b.id} b={b} {...actions} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {loaded === null ? (
         <div className="mt-16 flex justify-center text-mute">
           <Loader2 className="animate-spin" />
@@ -362,12 +555,11 @@ export default function Agenda() {
           {groups.map(([date, list]) => (
             <section key={date}>
               <h2 className="mb-3 font-display text-lg tracking-widest text-mute uppercase">
-                {date === today ? 'Hoje · ' : ''}
-                {formatDateLong(date)}
+                {date ? `${date === today ? 'Hoje · ' : ''}${formatDateLong(date)}` : 'Avaliações encerradas'}
               </h2>
               <div className="space-y-3">
                 {list.map((b) => (
-                  <BookingCard key={b.id} b={b} setStatus={setStatus} finish={finish} remove={remove} />
+                  <BookingCard key={b.id} b={b} {...actions} />
                 ))}
               </div>
             </section>

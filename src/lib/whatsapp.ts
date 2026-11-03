@@ -1,5 +1,6 @@
 import type { Booking, StudioInfo } from '@/types'
 import { formatBRL, formatDateLong, formatHours, onlyDigits } from './format'
+import { COVER_LABEL, FIRST_TATTOO_TIPS } from './triage'
 
 export function waLink(phone: string, text: string): string {
   return `https://wa.me/${onlyDigits(phone)}?text=${encodeURIComponent(text)}`
@@ -8,18 +9,28 @@ export function waLink(phone: string, text: string): string {
 /** Mensagem que o cliente envia ao estúdio confirmando o pedido. */
 export function bookingMessageToStudio(b: Booking): string {
   const t = b.tattoo
+  const evaluation = b.kind === 'evaluation'
   return [
-    `Olá! Acabei de solicitar um horário pelo app ArtExtreme.`,
+    evaluation
+      ? `Olá! Acabei de enviar um pedido de avaliação pelo app ArtExtreme.`
+      : `Olá! Acabei de solicitar um horário pelo app ArtExtreme.`,
     ``,
     `*Nome:* ${b.client.name}`,
-    `*Data:* ${formatDateLong(b.date)} às ${b.time}`,
+    evaluation
+      ? `*Avaliação:* ${b.cover ? COVER_LABEL[b.cover] : 'Projeto grande / fechamento'}`
+      : `*Data:* ${formatDateLong(b.date)} às ${b.time}`,
+    b.firstTattoo ? `*É minha primeira tattoo!* ✦` : null,
     `*Estilo:* ${t.styleName}${t.color ? ' (colorida)' : ' (preto e cinza)'}`,
     t.placements.length > 1 ? `*Locais:*` : `*Local:*`,
     ...t.placements.map((p, i) => `• ${t.placementLabels[i] ?? p.areaId}: ~${p.sizeCm} cm`),
     t.description ? `*Ideia:* ${t.description}` : null,
-    `*Estimativa:* ${formatBRL(b.estimate.low)} a ${formatBRL(b.estimate.high)} (~${formatHours(b.estimate.hours)})`,
+    evaluation
+      ? `*Estimativa inicial:* a partir de ${formatBRL(b.estimate.low)}`
+      : `*Estimativa:* ${formatBRL(b.estimate.low)} a ${formatBRL(b.estimate.high)} (~${formatHours(b.estimate.hours)})`,
     ``,
-    `Vou enviar as referências por aqui.`,
+    b.referencePath
+      ? `Já mandei a foto pelo app, mas posso enviar mais referências por aqui.`
+      : `Vou enviar as referências por aqui.`,
   ]
     .filter((line) => line !== null)
     .join('\n')
@@ -35,12 +46,13 @@ export const toWhatsAppNumber = (phone: string) => {
 export const clientWhatsApp = (b: Booking) => toWhatsAppNumber(b.client.phone)
 
 /** Mensagens que o artista manda ao cliente a partir do painel (com 1 toque). */
-export type ClientMessageKind = 'chat' | 'deposit' | 'confirmed' | 'cancelled' | 'done'
+export type ClientMessageKind = 'chat' | 'deposit' | 'confirmed' | 'cancelled' | 'done' | 'evaluation'
 
 export function clientMessage(kind: ClientMessageKind, b: Booking, studio: StudioInfo, siteUrl: string): string {
   const first = b.client.name.trim().split(/\s+/)[0]
   const hi = `Olá, ${first}! Aqui é o ${studio.artist}, da ${studio.name}.`
-  const when = `${formatDateLong(b.date)} às ${b.time}`
+  // Avaliação ainda não tem data
+  const when = b.date ? `${formatDateLong(b.date)} às ${b.time}` : 'a avaliação'
   const t = b.tattoo
   const places = t.placementLabels.join(', ')
 
@@ -69,9 +81,32 @@ export function clientMessage(kind: ClientMessageKind, b: Booking, studio: Studi
         `📅 ${when}`,
         `📍 ${studio.address} · ${studio.city}`,
         ``,
-        `No dia: durma bem, coma antes de vir, evite bebida alcoólica na véspera e venha com uma roupa que deixe a região livre.`,
-        `Qualquer dúvida é só chamar. Até lá!`,
+        ...(b.firstTattoo
+          ? [
+              `Como vai ser a sua primeira tattoo, separei umas dicas: ✦`,
+              ...FIRST_TATTOO_TIPS.map((tip) => `• ${tip}`),
+              ``,
+              `Fica tranquilo(a) que eu te explico tudo no dia. Até lá! 🖤`,
+            ]
+          : [
+              `No dia: durma bem, coma antes de vir, evite bebida alcoólica na véspera e venha com uma roupa que deixe a região livre.`,
+              `Qualquer dúvida é só chamar. Até lá!`,
+            ]),
       ].join('\n')
+
+    case 'evaluation':
+      return [
+        `${hi} 🖤`,
+        ``,
+        b.cover
+          ? `Recebi seu pedido de *${COVER_LABEL[b.cover].toLowerCase()}* (${places}) e já vi a foto que você mandou.`
+          : `Recebi seu pedido de avaliação para o projeto (${places}).`,
+        b.firstTattoo ? `E que legal que vai ser a sua primeira tattoo! ✦` : null,
+        ``,
+        `Vamos conversar sobre a ideia? Me conta o que você imagina que eu te passo o valor e as datas livres.`,
+      ]
+        .filter((l) => l !== null)
+        .join('\n')
 
     case 'cancelled':
       return [
@@ -91,6 +126,6 @@ export function clientMessage(kind: ClientMessageKind, b: Booking, studio: Studi
       ].join('\n')
 
     default:
-      return `${hi} Sobre o seu pedido para ${when}:`
+      return b.date ? `${hi} Sobre o seu pedido para ${when}:` : `${hi} Sobre o seu pedido de avaliação:`
   }
 }

@@ -75,6 +75,8 @@ export interface ScheduleConfig {
   close: string
   /** Intervalo entre horários oferecidos, em minutos. */
   stepMinutes: number
+  /** Pausa depois de cada sessão (limpeza, montar a bancada), em minutos. 0 ou ausente = sem pausa. */
+  bufferMinutes?: number
   /** Quantos dias à frente o cliente pode agendar. */
   daysAhead: number
   /** Datas bloqueadas (folgas, convenções), "YYYY-MM-DD". */
@@ -120,6 +122,11 @@ export interface Estimate {
   items: EstimateItem[]
 }
 
+/** Sessão com data, ou pedido de avaliação (cobertura, reforma, fechamento): sem data até o artista agendar. */
+export type BookingKind = 'session' | 'evaluation'
+/** Cobertura (cobrir uma tattoo antiga) ou reforma (refazer/restaurar). */
+export type CoverType = 'cover' | 'rework'
+
 export interface Booking {
   id: string
   createdAt: string
@@ -140,4 +147,11 @@ export interface Booking {
   notes: string
   /** Valor que o artista realmente cobrou (informado ao concluir). Sem ele, os relatórios usam a estimativa. */
   finalPrice?: number | null
+  /** Ausente = sessão (pedidos antigos). Na avaliação, date e time ficam vazios. */
+  kind?: BookingKind
+  /** Resposta do cliente a "É sua primeira tattoo?" (null = não respondeu) */
+  firstTattoo?: boolean | null
+  cover?: CoverType | null
+  /** Foto de referência: caminho no armazenamento privado (ou imagem local no modo sem banco) */
+  referencePath?: string | null
 }

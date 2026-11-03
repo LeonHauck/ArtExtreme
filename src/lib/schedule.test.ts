@@ -51,6 +51,18 @@ describe('availableSlots', () => {
     expect(availableSlots(schedule, [{ date: MONDAY, time: '10:00', hours: 3 }], MONDAY, 1)[0]).toBe('13:00')
   })
 
+  it('pausa entre sessões: bloqueia antes e depois, e oferece o horário logo após a pausa', () => {
+    // Sessão de 13h às 15h com 30 min de pausa: livre até 12h30 e a partir de 15h30
+    const withPause = { ...schedule, bufferMinutes: 30 }
+    const slots = availableSlots(withPause, [{ date: MONDAY, time: '13:00', hours: 2 }], MONDAY, 2)
+    expect(slots).toEqual(['10:00', '15:30', '16:00'])
+  })
+
+  it('sem pausa (0) continua como antes', () => {
+    const slots = availableSlots({ ...schedule, bufferMinutes: 0 }, [{ date: MONDAY, time: '13:00', hours: 2 }], MONDAY, 2)
+    expect(slots).toEqual(['10:00', '11:00', '15:00', '16:00'])
+  })
+
   it('não oferece nada em dia fechado', () => {
     expect(availableSlots(schedule, [], '2026-11-07', 1)).toEqual([])
   })

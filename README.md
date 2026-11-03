@@ -94,11 +94,14 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 - 📅 **Agendamento** com dias e horários livres, de acordo com o expediente, as folgas e a duração de cada sessão.
 - 💬 **WhatsApp**: o pedido vira uma mensagem prontinha para o estúdio.
 - 🩹 **Guia de cuidados pós-tattoo**, com o passo a passo do próprio Mike.
+- ✦ **Triagem rápida no agendamento**: "É sua primeira tattoo?" (o Mike recebe a etiqueta e o cliente ganha boas-vindas e dicas para o dia) e "É cobertura ou reforma?".
+- 📋 **Pedido de avaliação para exceções**: cobertura, reforma e fechamento (acima da maior faixa) não pegam um horário comum; o cliente envia a foto e o Mike agenda depois de avaliar.
 - 📲 **Instala como app** no Android e no iPhone (PWA), com botão "Instalar app", tela cheia e navegação inferior.
 
 ### Para o Mike (`/admin`)
 
 - 🔐 **Login com e-mail e senha**, com **"esqueci minha senha"** (link por e-mail que abre a tela de criar senha nova, mesmo em outro aparelho).
+- 📋 **Avaliações** no topo da agenda, com a foto enviada pelo cliente (armazenamento privado), resposta pronta no WhatsApp e botão para agendar quando fechar.
 - 🗓️ **Agenda em tempo real**: o pedido do cliente aparece na hora, com status (pendente, confirmado, concluído, cancelado) e indicadores.
 - 🔔 **Notificação no celular** a cada pedido novo, mesmo com o app fechado (Android e iPhone com o app instalado). Tocou, abre a agenda. Tem botão de "Enviar teste".
 - 📲 **Abre direto no painel**: no app instalado, o Mike logado cai na agenda; cliente continua vendo o site.
@@ -108,7 +111,8 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
   - **Áreas do corpo**: ajuste em % por região (costela dói mais, cobra mais 😅)
   - **Estilos**: ajuste por complexidade e marcação das especialidades em destaque
   - **Regras gerais**: valor mínimo, adicional de cor, margem da estimativa e % do sinal, com **exemplo de cálculo ao vivo**
-- ⚙️ **Configurações**: dados do estúdio, chave Pix, dias e horários, folgas, troca de senha e backup em JSON.
+- ⚙️ **Configurações**: dados do estúdio, chave Pix, dias e horários, folgas, **pausa entre sessões** (o Mike escolhe quantos minutos, ou zero), troca de senha e backup em JSON.
+- ⏱️ **Agenda que entende a duração**: cada tattoo bloqueia o tempo dela (somando os locais) mais a pausa, e o próximo horário livre já aparece logo depois.
 - 📊 **Relatórios**: faturamento do mês ou do ano (com comparação ao período anterior), tatuagens feitas, clientes novos x que voltaram, ticket médio, horas tatuando, gráfico de faturamento por mês, estilos e locais campeões e a lista de clientes com quantas vezes vieram e quanto gastaram. Filtros por mês, ano e estilo.
 - 💰 **Valor cobrado de verdade**: ao concluir a sessão, o app pergunta quanto foi cobrado (já preenchido com a estimativa) e é esse valor que entra no faturamento.
 - 🖼️ **Portfólio gerenciável**: sobe fotos direto do celular (o app recorta no formato do carrossel e comprime: 8,9 MB viram ~230 KB), define título, estilo, link do post, ordem e o que aparece no site.
@@ -270,6 +274,7 @@ npm run dev                  # http://localhost:5173
 - [x] **No ar na Vercel**: [artextreme.vercel.app](https://artextreme.vercel.app), com deploy automático a cada push
 - [x] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
 - [x] **Relatórios** com faturamento, clientes, estilos e locais por mês e por ano
+- [x] **Triagem**: primeira tattoo, cobertura/reforma e pedido de avaliação com foto
 - [ ] E-mails de senha saindo do Gmail do estúdio (SMTP)
 - [ ] WhatsApp 100% automático pela API oficial da Meta
 

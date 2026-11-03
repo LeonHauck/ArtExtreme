@@ -113,6 +113,11 @@ As chaves ficam no arquivo **`push-secrets.local`** na raiz do projeto (fora do 
 
 SQL Editor → cole e rode [`reports.sql`](reports.sql). Ele cria o campo do **valor cobrado** em cada sessão, que o artista informa ao concluir na Agenda, e impede que o cliente preencha esse campo ao agendar. Sem ele, o painel continua funcionando e os relatórios usam a estimativa.
 
+## 9. Triagem e pedido de avaliação
+
+1. SQL Editor → cole e rode [`triage.sql`](triage.sql). Ele cria os campos "primeira tattoo", "cobertura/reforma" e o **pedido de avaliação** (sem data), e o armazenamento **privado** `references` para as fotos: o cliente só envia, quem vê é o artista.
+2. Edge Functions → `notify-booking` → **Code** → cole de novo o conteúdo de [`functions/notify-booking/index.ts`](functions/notify-booking/index.ts) → **Deploy**. Assim a notificação mostra "Novo pedido de avaliação" e a etiqueta de primeira tattoo.
+
 ## O que cada um pode fazer
 
 | | Visitante | Administrador |
@@ -125,5 +130,7 @@ SQL Editor → cole e rode [`reports.sql`](reports.sql). Ele cria o campo do **v
 | Enviar e apagar fotos do portfólio | ❌ | ✅ |
 | Ativar notificações no próprio aparelho | ❌ | ✅ |
 | Ver relatórios e informar o valor cobrado | ❌ | ✅ |
+| Enviar foto de referência no pedido | ✅ | ✅ |
+| Ver as fotos de referência e agendar avaliações | ❌ | ✅ |
 
 Dois pedidos ativos no mesmo horário são bloqueados pelo próprio banco.

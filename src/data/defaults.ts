@@ -82,6 +82,7 @@ export const defaultSchedule: ScheduleConfig = {
   open: '10:00',
   close: '19:00',
   stepMinutes: 60,
+  bufferMinutes: 0,
   daysAhead: 60,
   blockedDates: [],
 }

@@ -1,7 +1,8 @@
 import { supabase } from './supabase'
 import { busyFromBookings, type BusySlot } from './schedule'
 import { useStudio } from '@/store/studio'
-import type { Booking, BookingStatus } from '@/types'
+import type { Booking, BookingStatus, BookingKind, CoverType } from '@/types'
+import { removeReference } from './referenceRepo'
 
 /**
  * Acesso aos agendamentos. Com Supabase, tudo vai para o banco (e o artista vê
@@ -25,11 +26,15 @@ interface BookingRow {
   client_instagram: string | null
   tattoo: Booking['tattoo']
   estimate: Booking['estimate']
-  session_date: string
-  start_time: string
+  session_date: string | null
+  start_time: string | null
   hours: number | string
   notes: string | null
   final_price?: number | string | null
+  kind?: BookingKind | null
+  first_tattoo?: boolean | null
+  cover?: CoverType | null
+  reference_path?: string | null
 }
 
 const fromRow = (r: BookingRow): Booking => ({
@@ -39,10 +44,14 @@ const fromRow = (r: BookingRow): Booking => ({
   client: { name: r.client_name, phone: r.client_phone, instagram: r.client_instagram ?? '' },
   tattoo: r.tattoo,
   estimate: r.estimate,
-  date: r.session_date,
-  time: r.start_time.slice(0, 5),
+  date: r.session_date ?? '',
+  time: r.start_time?.slice(0, 5) ?? '',
   notes: r.notes ?? '',
   finalPrice: r.final_price == null ? null : Number(r.final_price),
+  kind: r.kind ?? 'session',
+  firstTattoo: r.first_tattoo ?? null,
+  cover: r.cover ?? null,
+  referencePath: r.reference_path ?? null,
 })
 
 const toRow = (b: Booking) => ({
@@ -53,11 +62,18 @@ const toRow = (b: Booking) => ({
   client_instagram: b.client.instagram || null,
   tattoo: b.tattoo,
   estimate: b.estimate,
-  session_date: b.date,
-  start_time: b.time,
+  session_date: b.date || null,
+  start_time: b.time || null,
   hours: b.estimate.hours,
   notes: b.notes || null,
+  kind: b.kind ?? 'session',
+  first_tattoo: b.firstTattoo ?? null,
+  cover: b.cover ?? null,
+  reference_path: b.referencePath ?? null,
 })
+
+/** Banco ainda sem as colunas da triagem (supabase/triage.sql não rodou). */
+const missingColumn = (e: { code?: string } | null) => e?.code === 'PGRST204'
 
 /** Horários ocupados num intervalo de datas (sem nenhum dado de cliente). */
 export async function fetchBusy(from: string, to: string): Promise<BusySlot[]> {
@@ -78,7 +94,12 @@ export async function createBooking(b: Booking): Promise<void> {
     return
   }
   // Sem .select(): o visitante pode criar, mas não pode ler pedidos de volta
-  const { error } = await supabase.from('bookings').insert(toRow(b))
+  let { error } = await supabase.from('bookings').insert(toRow(b))
+  if (missingColumn(error) && (b.kind ?? 'session') === 'session') {
+    // Sessão comum continua funcionando mesmo antes da atualização do banco
+    const { kind: _k, first_tattoo: _f, cover: _c, reference_path: _r, ...legacy } = toRow(b)
+    ;({ error } = await supabase.from('bookings').insert(legacy))
+  }
   if (error) {
     if (error.code === 'P0001' || /indispon/i.test(error.message)) throw new SlotTakenError()
     throw error
@@ -119,10 +140,25 @@ export async function setBookingDone(id: string, finalPrice: number | null): Pro
   if (error) throw error
 }
 
-export async function deleteBooking(id: string): Promise<void> {
+/** Avaliação aprovada: vira sessão confirmada na data e no horário combinados. */
+export async function scheduleEvaluation(b: Booking, date: string, time: string, hours: number): Promise<void> {
+  const estimate = { ...b.estimate, hours }
+  if (!supabase) return useStudio.getState().updateBooking(b.id, { kind: 'session', date, time, estimate, status: 'confirmed' })
+  const { error } = await supabase
+    .from('bookings')
+    .update({ kind: 'session', session_date: date, start_time: time, hours, estimate, status: 'confirmed' })
+    .eq('id', b.id)
+  if (error) {
+    if (error.code === 'P0001') throw new SlotTakenError()
+    throw error
+  }
+}
+
+export async function deleteBooking(id: string, referencePath?: string | null): Promise<void> {
   if (!supabase) return useStudio.getState().removeBooking(id)
   const { error } = await supabase.from('bookings').delete().eq('id', id)
   if (error) throw error
+  if (referencePath) await removeReference(referencePath).catch(() => {})
 }
 
 /** Avisa quando chega/muda um pedido (tempo real). Retorna a função para parar. */

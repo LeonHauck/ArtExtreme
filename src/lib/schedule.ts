@@ -21,7 +21,9 @@ export const isActive = (b: Booking) => b.status === 'pending' || b.status === '
 
 /** Converte agendamentos (modo local) em horários ocupados. */
 export const busyFromBookings = (bookings: Booking[]): BusySlot[] =>
-  bookings.filter(isActive).map((b) => ({ date: b.date, time: b.time, hours: b.estimate.hours }))
+  bookings
+    .filter((b) => isActive(b) && b.kind !== 'evaluation' && b.date)
+    .map((b) => ({ date: b.date, time: b.time, hours: b.estimate.hours }))
 
 /** O estúdio atende nesta data? (dia da semana liberado e data não bloqueada) */
 export function isOpenDay(schedule: ScheduleConfig, iso: string): boolean {
@@ -43,7 +45,8 @@ export function bookableDates(schedule: ScheduleConfig, now = new Date()): strin
 
 /**
  * Horários de início livres em uma data, para uma sessão de `hours` horas.
- * A sessão precisa terminar até o fechamento e não pode sobrepor um horário ocupado.
+ * A sessão precisa terminar até o fechamento e não pode sobrepor um horário ocupado,
+ * respeitando a pausa entre sessões antes e depois de cada uma.
  * Sessões maiores que o expediente só podem começar na abertura.
  */
 export function availableSlots(schedule: ScheduleConfig, busy: BusySlot[], iso: string, hours: number): string[] {
@@ -54,18 +57,24 @@ export function availableSlots(schedule: ScheduleConfig, busy: BusySlot[], iso: 
   const duration = Math.round(hours * 60)
   const lastStart = Math.max(open, close - duration)
 
-  const taken = busy
+  const pause = Math.max(0, Math.round(schedule.bufferMinutes ?? 0))
+
+  // Cada sessão ocupa o seu horário + a pausa antes e depois
+  const sessions = busy
     .filter((b) => b.date === iso)
     .map((b) => {
       const start = toMinutes(b.time)
       return [start, start + Math.round(b.hours * 60)] as const
     })
+  const blocked = sessions.map(([s, e]) => [s - pause, e + pause] as const)
 
-  const slots: string[] = []
-  for (let t = open; t <= lastStart; t += schedule.stepMinutes) {
-    const end = t + duration
-    const overlaps = taken.some(([s, e]) => t < e && end > s)
-    if (!overlaps) slots.push(fromMinutes(t))
-  }
-  return slots
+  // Horários da grade + logo depois de cada sessão e sua pausa (não desperdiça tempo)
+  const starts = new Set<number>()
+  for (let t = open; t <= lastStart; t += schedule.stepMinutes) starts.add(t)
+  for (const [, e] of sessions) if (e + pause >= open && e + pause <= lastStart) starts.add(e + pause)
+
+  return [...starts]
+    .sort((a, b) => a - b)
+    .filter((t) => !blocked.some(([s, e]) => t < e && t + duration > s))
+    .map(fromMinutes)
 }

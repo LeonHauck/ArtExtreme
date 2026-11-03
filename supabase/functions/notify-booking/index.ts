@@ -43,24 +43,38 @@ interface Payload {
 interface BookingRow {
   id: string
   client_name: string
-  session_date: string
-  start_time: string
+  session_date: string | null
+  start_time: string | null
+  kind?: 'session' | 'evaluation' | null
+  first_tattoo?: boolean | null
+  cover?: 'cover' | 'rework' | null
   tattoo?: { placementLabels?: string[]; styleName?: string }
 }
 
 const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+const COVER_LABEL = { cover: 'Cobertura', rework: 'Reforma' } as const
 
-/** "Ana Souza · sex, 30/10 às 17:00" + locais e estilo */
+/** "Ana Souza · sex, 30/10 às 17:00" + locais e estilo (ou "Cobertura" na avaliação) */
 export function bookingPayload(b: BookingRow): Payload {
-  const [y, m, d] = b.session_date.split('-').map(Number)
-  const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
-  const when = `${weekday}, ${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} às ${b.start_time.slice(0, 5)}`
+  const evaluation = b.kind === 'evaluation' || !b.session_date
+  let when: string
+  if (evaluation) {
+    when = b.cover ? COVER_LABEL[b.cover] : 'Projeto grande'
+  } else {
+    const [y, m, d] = b.session_date!.split('-').map(Number)
+    const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
+    when = `${weekday}, ${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')} às ${(b.start_time ?? '').slice(0, 5)}`
+  }
   const places = b.tattoo?.placementLabels?.filter(Boolean) ?? []
-  const what = [places.slice(0, 3).join(', ') + (places.length > 3 ? ` +${places.length - 3}` : ''), b.tattoo?.styleName]
+  const what = [
+    places.slice(0, 3).join(', ') + (places.length > 3 ? ` +${places.length - 3}` : ''),
+    b.tattoo?.styleName,
+    b.first_tattoo ? '1ª tattoo ✦' : null,
+  ]
     .filter(Boolean)
     .join(' · ')
   return {
-    title: 'Novo pedido de horário ✦',
+    title: evaluation ? 'Novo pedido de avaliação ✦' : 'Novo pedido de horário ✦',
     body: `${b.client_name} · ${when}${what ? `\n${what}` : ''}`,
     url: '/admin',
     tag: `booking-${b.id}`,
