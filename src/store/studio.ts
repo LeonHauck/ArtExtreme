@@ -146,7 +146,7 @@ export const useStudio = create<StudioState>()(
     }),
     {
       name: 'artextreme-studio',
-      version: 4,
+      version: 5,
       migrate: (persisted, version) => {
         const state = persisted as StudioState
         if (version < 2) {
@@ -165,11 +165,35 @@ export const useStudio = create<StudioState>()(
           // v4: chave Pix e outros campos novos do estúdio
           state.studio = { ...defaultStudio, ...state.studio }
         }
+        if (version < 5) {
+          // v5: braço dividido em lado de dentro e de fora
+          state.pricing = migratePricingNames(state.pricing)
+        }
         return state
       },
     },
   ),
 )
+
+/** Nomes antigos das áreas que mudaram (só troca se o artista não tiver renomeado). */
+const RENAMED_AREAS: Record<string, [string, string]> = {
+  braco: ['Braço (bíceps)', 'Braço interno'],
+  triceps: ['Braço (tríceps)', 'Braço externo'],
+}
+
+/** Atualiza nomes de áreas salvos em versões anteriores, mantendo percentuais e ajustes. */
+export function migratePricingNames(pricing: PricingConfig): PricingConfig {
+  let changed = false
+  const areas = pricing.areas.map((a) => {
+    const r = RENAMED_AREAS[a.id]
+    if (r && a.name === r[0]) {
+      changed = true
+      return { ...a, name: r[1] }
+    }
+    return a
+  })
+  return changed ? { ...pricing, areas } : pricing
+}
 
 /** Áreas novas entram com o valor padrão; as existentes mantêm os ajustes do artista. */
 function mergeAreas(current: BodyArea[] = []): BodyArea[] {

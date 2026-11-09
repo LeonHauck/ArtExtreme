@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from './supabase'
 import { defaultStudio } from '@/data/defaults'
-import { useStudio } from '@/store/studio'
+import { migratePricingNames, useStudio } from '@/store/studio'
 import { useAuth } from '@/store/auth'
 import type { PricingConfig, ScheduleConfig, StudioInfo } from '@/types'
 
@@ -31,8 +31,11 @@ export async function loadRemoteSettings() {
     const row = data as SettingsRow
     applyingRemote = true
     // Campos novos (ex.: chave Pix) entram com o valor padrão
-    useStudio.setState({ pricing: row.pricing, studio: { ...defaultStudio, ...row.studio }, schedule: row.schedule })
+    const pricing = migratePricingNames(row.pricing)
+    useStudio.setState({ pricing, studio: { ...defaultStudio, ...row.studio }, schedule: row.schedule })
     applyingRemote = false
+    // Nome de área atualizado nesta versão: o painel do artista grava a correção
+    if (pricing !== row.pricing && useAuth.getState().isAdmin) void save()
   }
   useSync.setState({ loaded: true })
   // Artista já logado e banco ainda vazio: envia as configurações atuais

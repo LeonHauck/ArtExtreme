@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { CalendarDays, Home, Mail, MapPin, ScanLine } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { InstallAppButton } from '@/components/InstallAppButton'
+import { ShareButton } from '@/components/ShareButton'
 import { InstagramIcon, WhatsAppIcon } from '@/components/ui/BrandIcons'
 import { NeonRule } from '@/components/ui/Ornament'
 import { useStudio } from '@/store/studio'
@@ -104,6 +105,7 @@ function Footer() {
                 <WhatsAppIcon size={18} /> WhatsApp
               </a>
               <InstallAppButton />
+              <ShareButton />
             </div>
           </div>
           <ul className="space-y-3 text-sm text-bone/80">

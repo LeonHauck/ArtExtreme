@@ -172,7 +172,11 @@ function Torso() {
 const FRONT = { phiStart: -PI / 2, phiLength: PI }
 const BACK = { phiStart: PI / 2, phiLength: PI }
 
-/** Braço em "A-pose", na posição anatômica (palmas para a frente). side = 1 (esquerdo, +X) ou -1 (direito, -X). */
+/** Lado de dentro (virado para o tronco) e lado de fora de um membro. side = 1 (esquerdo, +X) ou -1 (direito, -X). */
+const INNER = (side: 1 | -1) => (side === 1 ? { phiStart: PI, phiLength: PI } : { phiStart: 0, phiLength: PI })
+const OUTER = (side: 1 | -1) => (side === 1 ? { phiStart: 0, phiLength: PI } : { phiStart: PI, phiLength: PI })
+
+/** Braço em "A-pose", com a palma virada para o corpo. side = 1 (esquerdo, +X) ou -1 (direito, -X). */
 function Arm({ side }: { side: 1 | -1 }) {
   const s = side === 1 ? 'e' : 'd'
   return (
@@ -181,22 +185,23 @@ function Arm({ side }: { side: 1 | -1 }) {
       <Part zone={`ombro_${s}`} scale={[1, 1.08, 0.92]}>
         <sphereGeometry args={[0.068, 32, 20]} />
       </Part>
-      {/* Braço: bíceps (frente) e tríceps (trás) */}
+      {/* Braço: lado de dentro (virado para o tronco) e lado de fora */}
       <Part zone={`biceps_${s}`} scale={[1, 1, 0.95]}>
-        <Lathe profile={UPPER_ARM} {...FRONT} />
+        <Lathe profile={UPPER_ARM} {...INNER(side)} />
       </Part>
       <Part zone={`triceps_${s}`} scale={[1, 1, 0.95]}>
-        <Lathe profile={UPPER_ARM} {...BACK} />
+        <Lathe profile={UPPER_ARM} {...OUTER(side)} />
       </Part>
-      <group position={[0, -0.3, 0]} rotation={[-0.1, 0, 0]}>
-        {/* Antebraço: interno (frente, com a palma para a frente) e externo (trás) */}
+      {/* Antebraço girado: a palma fica virada para o corpo */}
+      <group position={[0, -0.3, 0]} rotation={[-0.1, (-PI / 2) * side, 0]}>
+        {/* Antebraço: interno (lado da palma, virado para dentro) e externo (lado de fora) */}
         <Part zone={`antebraco_int_${s}`} scale={[1, 1, 0.82]}>
           <Lathe profile={FOREARM} {...FRONT} />
         </Part>
         <Part zone={`antebraco_ext_${s}`} scale={[1, 1, 0.82]}>
           <Lathe profile={FOREARM} {...BACK} />
         </Part>
-        {/* Mão: palma para a frente, polegar para fora */}
+        {/* Mão: palma virada para o corpo, polegar para a frente */}
         <group position={[0, -0.27, 0]}>
           <Part zone={`mao_${s}`} position={[0, -0.055, 0]} scale={[0.042, 0.062, 0.021]}>
             <sphereGeometry args={[1, 24, 16]} />

@@ -41,12 +41,14 @@ export function AuthCard({
 /** Campo de senha com botão "mostrar". */
 export function PasswordInput({
   id,
+  name,
   value,
   onChange,
   autoComplete,
   autoFocus,
 }: {
   id: string
+  name?: string
   value: string
   onChange: (v: string) => void
   autoComplete: 'current-password' | 'new-password'
@@ -57,6 +59,7 @@ export function PasswordInput({
     <div className="relative">
       <input
         id={id}
+        name={name ?? id}
         type={visible ? 'text' : 'password'}
         className="input pr-20"
         value={value}

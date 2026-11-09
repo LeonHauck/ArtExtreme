@@ -87,7 +87,7 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 ### Para quem quer tatuar
 
 - 🧍 **Corpo 3D interativo** com visual neon de holograma. Gira, dá zoom e tem atalhos de frente, lados e costas.
-- 🎯 **Marcação precisa**: frente e trás são áreas diferentes (bíceps/tríceps, antebraço interno/externo, coxa/posterior, canela/panturrilha, pescoço/nuca).
+- 🎯 **Marcação precisa**: braço e antebraço têm o lado de dentro (virado para o corpo) e o de fora; coxa/posterior, canela/panturrilha e pescoço/nuca têm frente e trás. Cada um é uma área com preço próprio.
 - ➕ **Vários locais num pedido só**, cada um com seu tamanho. Valor e tempo de sessão somam automaticamente, com detalhamento por local.
 - 💸 **Estimativa na hora**: faixa de valor, duração da sessão e sinal.
 - 🖼️ **Portfólio em esteira infinita** de ponta a ponta da tela, com pausa/play e arraste. Cada foto abre o post no Instagram.
@@ -100,7 +100,9 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 
 ### Para o Mike (`/admin`)
 
-- 🔐 **Login com e-mail e senha**, com **"esqueci minha senha"** (link por e-mail que abre a tela de criar senha nova, mesmo em outro aparelho).
+- 🔐 **Login com e-mail e senha** (Enter já entra, mesmo com a senha salva no navegador).
+- ➕ **Agendar pelo painel**: o Mike marca o horário de alguém direto na Agenda (confirmado, aguardando sinal ou uma sessão que já aconteceu), com a estimativa da tabela, os horários livres do dia e valor combinado.
+- 🔗 **Compartilhar o site** com 1 toque, pelo painel ou pelo rodapé (menu nativo do celular, copiar link ou WhatsApp).
 - 📋 **Avaliações** no topo da agenda, com a foto enviada pelo cliente (armazenamento privado), resposta pronta no WhatsApp e botão para agendar quando fechar.
 - 🗓️ **Agenda em tempo real**: o pedido do cliente aparece na hora, com status (pendente, confirmado, concluído, cancelado) e indicadores.
 - 🔔 **Notificação no celular** a cada pedido novo, mesmo com o app fechado (Android e iPhone com o app instalado). Tocou, abre a agenda. Tem botão de "Enviar teste".
@@ -262,20 +264,20 @@ npm run dev                  # http://localhost:5173
 
 ## 🗺️ Roadmap
 
-- [x] Simulador 3D com vários locais e marcação frente/trás
+- [x] Simulador 3D com vários locais e marcação frente/trás (e dentro/fora nos braços)
 - [x] Estimativa somada, agendamento e integração com WhatsApp
 - [x] Painel: agenda, preços e configurações
 - [x] Identidade visual da ArtExtreme, portfólio e guia de cuidados
 - [x] PWA instalável no Android e no iPhone
 - [x] **Supabase**: agenda compartilhada entre clientes e o Mike, em tempo real
-- [x] **Login do Mike** por e-mail e senha, com **"esqueci minha senha"**
+- [x] **Login do Mike** por e-mail e senha (se esquecer, a senha é redefinida pelo Supabase)
 - [x] **WhatsApp com 1 toque** para pedir sinal, confirmar, cancelar e concluir
 - [x] **Aba Portfólio** no painel: subir fotos pelo celular, escolher estilo e ordem
 - [x] **No ar na Vercel**: [artextreme.vercel.app](https://artextreme.vercel.app), com deploy automático a cada push
 - [x] **Notificação no celular do Mike** quando chegar pedido (push, Android e iPhone)
 - [x] **Relatórios** com faturamento, clientes, estilos e locais por mês e por ano
 - [x] **Triagem**: primeira tattoo, cobertura/reforma e pedido de avaliação com foto
-- [ ] E-mails de senha saindo do Gmail do estúdio (SMTP)
+- [x] **Agendamento pelo painel**, braço dividido em lado de dentro e de fora, e botão de compartilhar
 - [ ] WhatsApp 100% automático pela API oficial da Meta
 
 <br>

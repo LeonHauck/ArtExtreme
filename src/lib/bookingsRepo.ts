@@ -35,6 +35,7 @@ interface BookingRow {
   first_tattoo?: boolean | null
   cover?: CoverType | null
   reference_path?: string | null
+  origin?: 'client' | 'studio' | null
 }
 
 const fromRow = (r: BookingRow): Booking => ({
@@ -52,6 +53,7 @@ const fromRow = (r: BookingRow): Booking => ({
   firstTattoo: r.first_tattoo ?? null,
   cover: r.cover ?? null,
   referencePath: r.reference_path ?? null,
+  origin: r.origin ?? 'client',
 })
 
 const toRow = (b: Booking) => ({
@@ -70,6 +72,8 @@ const toRow = (b: Booking) => ({
   first_tattoo: b.firstTattoo ?? null,
   cover: b.cover ?? null,
   reference_path: b.referencePath ?? null,
+  origin: b.origin ?? 'client',
+  final_price: b.finalPrice ?? null,
 })
 
 /** Banco ainda sem as colunas da triagem (supabase/triage.sql não rodou). */
@@ -94,11 +98,16 @@ export async function createBooking(b: Booking): Promise<void> {
     return
   }
   // Sem .select(): o visitante pode criar, mas não pode ler pedidos de volta
-  let { error } = await supabase.from('bookings').insert(toRow(b))
-  if (missingColumn(error) && (b.kind ?? 'session') === 'session') {
-    // Sessão comum continua funcionando mesmo antes da atualização do banco
-    const { kind: _k, first_tattoo: _f, cover: _c, reference_path: _r, ...legacy } = toRow(b)
-    ;({ error } = await supabase.from('bookings').insert(legacy))
+  const row = toRow(b)
+  let { error } = await supabase.from('bookings').insert(row)
+  // Banco ainda sem colunas novas: pedido do cliente continua funcionando
+  if (missingColumn(error) && row.origin === 'client') {
+    const { origin: _o, ...withoutOrigin } = row // antes do studio-booking.sql
+    ;({ error } = await supabase.from('bookings').insert(withoutOrigin))
+    if (missingColumn(error) && row.kind === 'session') {
+      const { kind: _k, first_tattoo: _f, cover: _c, reference_path: _r, ...legacy } = withoutOrigin // antes do triage.sql
+      ;({ error } = await supabase.from('bookings').insert(legacy))
+    }
   }
   if (error) {
     if (error.code === 'P0001' || /indispon/i.test(error.message)) throw new SlotTakenError()

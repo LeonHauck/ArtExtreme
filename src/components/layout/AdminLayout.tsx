@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { CalendarCheck, ChartColumn, Check, CloudOff, ExternalLink, Images, KeyRound, Loader2, Lock, LogOut, MailCheck, Settings, Tags } from 'lucide-react'
+import { CalendarCheck, ChartColumn, Check, CloudOff, ExternalLink, Images, Loader2, Lock, LogOut, Settings, Tags } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { InstallAppButton } from '@/components/InstallAppButton'
+import { ShareButton } from '@/components/ShareButton'
 import { AuthCard, PasswordInput } from '@/components/admin/AuthCard'
 import { useStudio } from '@/store/studio'
-import { sendPasswordReset, signIn, signOut, useAuth } from '@/store/auth'
+import { signIn, signOut, useAuth } from '@/store/auth'
 import { useSync } from '@/lib/settingsSync'
 import { isRemote } from '@/lib/supabase'
 import { disablePush, syncPush } from '@/lib/push'
@@ -22,82 +23,42 @@ const TABS = [
 /* ─── Modo Supabase: e-mail e senha ─────────────────────────────────── */
 
 function LoginForm() {
-  const [mode, setMode] = useState<'login' | 'forgot' | 'sent'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const submitLogin = async (e: FormEvent) => {
+  const submitLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    // Lê direto do formulário: senha preenchida automaticamente pelo navegador
+    // não chega ao estado do React até a pessoa interagir com a página
+    const data = new FormData(e.currentTarget)
+    const em = String(data.get('email') ?? email).trim()
+    const pw = String(data.get('password') ?? password)
+    if (!em || !pw) {
+      setError('Preencha o e-mail e a senha.')
+      return
+    }
     setBusy(true)
-    setError(await signIn(email, password))
+    setError(await signIn(em, pw))
     setBusy(false)
   }
 
-  const submitForgot = async (e: FormEvent) => {
-    e.preventDefault()
-    setBusy(true)
-    const err = await sendPasswordReset(email)
-    setBusy(false)
-    if (err) setError(err)
-    else setMode('sent')
-  }
-
-  if (mode === 'sent') {
-    return (
-      <AuthCard icon={<MailCheck size={20} />} title="Confira seu e-mail" subtitle="Se esse e-mail tiver acesso ao painel, enviamos um link para criar uma nova senha.">
-        <p className="text-center text-sm text-mute">
-          Não chegou? Veja a caixa de spam ou{' '}
-          <button className="text-violet-light hover:underline" onClick={() => setMode('forgot')}>
-            envie de novo
-          </button>
-          .
-        </p>
-        <button className="btn btn-outline mt-5 w-full" onClick={() => setMode('login')}>
-          Voltar para o login
-        </button>
-      </AuthCard>
-    )
-  }
-
-  if (mode === 'forgot') {
-    return (
-      <AuthCard icon={<KeyRound size={20} />} title="Esqueci minha senha" subtitle="Informe seu e-mail e enviamos um link para criar uma senha nova.">
-        <form onSubmit={submitForgot} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="label">E-mail</label>
-            <input id="email" type="email" className="input" autoComplete="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
-          {error && <p className="text-sm text-pink">{error}</p>}
-          <button className="btn btn-primary w-full" disabled={busy || !email}>
-            {busy ? <Loader2 size={18} className="animate-spin" /> : 'Enviar link'}
-          </button>
-          <button type="button" className="w-full text-center text-sm text-mute hover:text-bone" onClick={() => { setError(null); setMode('login') }}>
-            Lembrei a senha
-          </button>
-        </form>
-      </AuthCard>
-    )
-  }
-
+  // Sem "esqueci minha senha" por e-mail: a senha é redefinida pelo Supabase (Authentication → Users)
   return (
     <AuthCard icon={<Lock size={20} />} title="Área do artista" subtitle="Entre com seu e-mail e senha.">
       <form onSubmit={submitLogin} className="space-y-4">
         <div>
           <label htmlFor="email" className="label">E-mail</label>
-          <input id="email" type="email" className="input" autoComplete="email" autoFocus value={email} onChange={(e) => { setEmail(e.target.value); setError(null) }} required />
+          <input id="email" name="email" type="email" className="input" autoComplete="username email" autoFocus value={email} onChange={(e) => { setEmail(e.target.value); setError(null) }} />
         </div>
         <div>
           <label htmlFor="password" className="label">Senha</label>
-          <PasswordInput id="password" autoComplete="current-password" value={password} onChange={(v) => { setPassword(v); setError(null) }} />
+          <PasswordInput id="password" name="password" autoComplete="current-password" value={password} onChange={(v) => { setPassword(v); setError(null) }} />
         </div>
         {error && <p className="text-sm text-pink" role="alert">{error}</p>}
-        <button className="btn btn-primary w-full" disabled={busy || !email || !password}>
+        <button type="submit" className="btn btn-primary w-full" disabled={busy}>
           {busy ? <Loader2 size={18} className="animate-spin" /> : 'Entrar'}
-        </button>
-        <button type="button" className="w-full text-center text-sm text-violet-light hover:underline" onClick={() => { setError(null); setMode('forgot') }}>
-          Esqueci minha senha
         </button>
       </form>
     </AuthCard>
@@ -225,6 +186,7 @@ function AdminShell({ onLogout }: { onLogout: () => void }) {
           <div className="flex items-center gap-1">
             {isRemote && <SyncBadge />}
             <InstallAppButton className="btn btn-ghost btn-sm text-violet-light" label="App" />
+            <ShareButton className="btn btn-ghost btn-sm" labelClassName="hidden sm:inline" />
             <Link to="/" className="btn btn-ghost btn-sm" title="Ver site">
               <ExternalLink size={16} />
               <span className="hidden sm:inline">Ver site</span>

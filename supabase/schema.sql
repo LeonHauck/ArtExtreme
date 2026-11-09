@@ -227,6 +227,28 @@ drop policy if exists "admin apaga fotos de referência" on storage.objects;
 create policy "admin apaga fotos de referência" on storage.objects
   for delete to authenticated using (bucket_id = 'references' and public.is_admin());
 
+-- ─── Agendamento feito pelo artista (pelo painel) ───────────────────────
+-- De onde veio o pedido: do site (cliente) ou do painel (estúdio)
+alter table public.bookings add column if not exists origin text not null default 'client';
+alter table public.bookings drop constraint if exists bookings_origin_check;
+alter table public.bookings add constraint bookings_origin_check check (origin in ('client', 'studio'));
+
+-- Cliente: igual antes, e sempre como "client"
+drop policy if exists "cliente cria pedido pendente" on public.bookings;
+create policy "cliente cria pedido pendente" on public.bookings
+  for insert to anon, authenticated
+  with check (
+    origin = 'client' and status = 'pending' and final_price is null and (
+      (kind = 'session' and session_date > current_date)
+      or (kind = 'evaluation' and session_date is null and start_time is null)
+    )
+  );
+
+-- Artista: cria agendamentos livremente (a trava de horário duplicado continua valendo)
+drop policy if exists "admin cria agendamentos" on public.bookings;
+create policy "admin cria agendamentos" on public.bookings
+  for insert to authenticated with check (public.is_admin());
+
 -- ─── Notificações no celular (push) ─────────────────────────────────────
 -- Aparelhos do artista que recebem aviso de pedido novo.
 create table if not exists public.push_subscriptions (

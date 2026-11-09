@@ -48,6 +48,7 @@ interface BookingRow {
   kind?: 'session' | 'evaluation' | null
   first_tattoo?: boolean | null
   cover?: 'cover' | 'rework' | null
+  origin?: 'client' | 'studio' | null
   tattoo?: { placementLabels?: string[]; styleName?: string }
 }
 
@@ -135,6 +136,8 @@ Deno.serve(async (req) => {
       if (body?.type !== 'INSERT' || body?.table !== 'bookings' || !body?.record) return json({ skipped: true })
       const record = body.record as BookingRow & { status?: string }
       if (record.status && record.status !== 'pending') return json({ skipped: true })
+      // Agendamento que o próprio artista criou no painel: não precisa avisar ele mesmo
+      if (record.origin === 'studio') return json({ skipped: true })
       return json(await sendToDevices(await adminIds(), bookingPayload(record)))
     }
 

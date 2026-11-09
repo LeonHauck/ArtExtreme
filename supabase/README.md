@@ -118,6 +118,11 @@ SQL Editor → cole e rode [`reports.sql`](reports.sql). Ele cria o campo do **v
 1. SQL Editor → cole e rode [`triage.sql`](triage.sql). Ele cria os campos "primeira tattoo", "cobertura/reforma" e o **pedido de avaliação** (sem data), e o armazenamento **privado** `references` para as fotos: o cliente só envia, quem vê é o artista.
 2. Edge Functions → `notify-booking` → **Code** → cole de novo o conteúdo de [`functions/notify-booking/index.ts`](functions/notify-booking/index.ts) → **Deploy**. Assim a notificação mostra "Novo pedido de avaliação" e a etiqueta de primeira tattoo.
 
+## 10. Agendamento feito pelo artista
+
+1. SQL Editor → cole e rode [`studio-booking.sql`](studio-booking.sql). Ele deixa o artista criar agendamentos pela Agenda (qualquer data e situação) e marca a origem do pedido (cliente ou estúdio).
+2. Edge Functions → `notify-booking` → **Code** → cole de novo [`functions/notify-booking/index.ts`](functions/notify-booking/index.ts) → **Deploy**. Assim o artista não recebe notificação do agendamento que ele mesmo criou.
+
 ## O que cada um pode fazer
 
 | | Visitante | Administrador |
@@ -132,5 +137,6 @@ SQL Editor → cole e rode [`reports.sql`](reports.sql). Ele cria o campo do **v
 | Ver relatórios e informar o valor cobrado | ❌ | ✅ |
 | Enviar foto de referência no pedido | ✅ | ✅ |
 | Ver as fotos de referência e agendar avaliações | ❌ | ✅ |
+| Criar agendamento confirmado ou em qualquer data | ❌ | ✅ |
 
 Dois pedidos ativos no mesmo horário são bloqueados pelo próprio banco.

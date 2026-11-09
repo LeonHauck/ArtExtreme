@@ -154,4 +154,6 @@ export interface Booking {
   cover?: CoverType | null
   /** Foto de referência: caminho no armazenamento privado (ou imagem local no modo sem banco) */
   referencePath?: string | null
+  /** Quem criou: o cliente pelo site, ou o artista pelo painel ("studio"). Ausente = cliente. */
+  origin?: 'client' | 'studio'
 }

@@ -17,6 +17,7 @@ import { formatBRL, formatDateLong, formatHours, maskPhone, parseMoney, toISODat
 import { clientMessage, clientWhatsApp, waLink, type ClientMessageKind } from '@/lib/whatsapp'
 import { WhatsAppIcon, InstagramIcon } from '@/components/ui/BrandIcons'
 import { PushBanner } from '@/components/admin/PushControls'
+import { NewBookingForm } from '@/components/admin/NewBookingForm'
 import { isRemote } from '@/lib/supabase'
 
 const STATUS: Record<BookingStatus, { label: string; className: string }> = {
@@ -26,7 +27,12 @@ const STATUS: Record<BookingStatus, { label: string; className: string }> = {
   cancelled: { label: 'Cancelado', className: 'border-violet/40 bg-violet/10 text-violet-light' },
 }
 
-const NOTICE_TEXT: Record<string, string> = { confirmed: 'Horário confirmado ✓', cancelled: 'Horário cancelado', done: 'Sessão concluída 🙌' }
+const NOTICE_TEXT: Record<string, string> = {
+  confirmed: 'Horário confirmado ✓',
+  cancelled: 'Horário cancelado',
+  done: 'Sessão concluída 🙌',
+  deposit: 'Horário reservado',
+}
 
 type Filter = 'upcoming' | 'pending' | 'history' | 'all'
 const FILTERS: { id: Filter; label: string }[] = [
@@ -433,11 +439,19 @@ function useAdminBookings() {
     if (ok && booking && booking.status !== 'done') setNotice({ booking: { ...booking, status: 'done', finalPrice: price }, kind: 'done' })
   }
 
+  // Agendamento criado pelo artista: atualiza e sugere a mensagem certa para o cliente
+  const created = async (b: Booking) => {
+    await refresh()
+    if (b.status === 'confirmed') setNotice({ booking: b, kind: 'confirmed' })
+    else if (b.status === 'pending') setNotice({ booking: b, kind: 'deposit' })
+  }
+
   return {
     bookings,
     error,
     refresh,
     notice,
+    created: (b: Booking) => void created(b),
     dismissNotice: () => setNotice(null),
     setStatus: (id: string, status: BookingStatus) => void setStatus(id, status),
     finish: (id: string, price: number | null) => void finish(id, price),
@@ -447,10 +461,11 @@ function useAdminBookings() {
 }
 
 export default function Agenda() {
-  const { bookings: loaded, error, refresh, notice, dismissNotice, ...actions } = useAdminBookings()
+  const { bookings: loaded, error, refresh, notice, dismissNotice, created, ...actions } = useAdminBookings()
   const wa = useClientWa()
   const bookings = useMemo(() => loaded ?? [], [loaded])
   const [filter, setFilter] = useState<Filter>('upcoming')
+  const [creating, setCreating] = useState(false)
   const today = toISODate(new Date())
 
   // Avaliações abertas ficam sempre no topo, fora dos filtros
@@ -494,10 +509,26 @@ export default function Agenda() {
     <div className="animate-fade-up">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-display text-4xl tracking-wide">Agenda</h1>
-        <button className="btn btn-ghost btn-sm" onClick={() => void refresh()} title="Atualizar">
-          <RefreshCw size={15} /> <span className="hidden sm:inline">Atualizar</span>
-        </button>
+        <div className="flex items-center gap-1">
+          <button className="btn btn-ghost btn-sm" onClick={() => void refresh()} title="Atualizar">
+            <RefreshCw size={15} /> <span className="hidden sm:inline">Atualizar</span>
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => setCreating(true)} disabled={creating}>
+            <CalendarPlus size={15} /> Agendar
+          </button>
+        </div>
       </div>
+
+      {creating && (
+        <NewBookingForm
+          bookings={bookings}
+          onCancel={() => setCreating(false)}
+          onCreated={(b) => {
+            setCreating(false)
+            created(b)
+          }}
+        />
+      )}
 
       {isRemote && <PushBanner />}
 

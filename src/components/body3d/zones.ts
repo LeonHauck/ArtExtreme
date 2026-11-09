@@ -3,11 +3,12 @@
  * Lados esquerdo/direito compartilham a mesma área de preço, mas ficam registrados
  * separadamente no pedido para o artista saber exatamente onde é.
  *
- * Membros e pescoço são divididos em frente/trás (ex.: coxa x posterior da coxa),
+ * Pernas e pescoço são divididos em frente/trás (ex.: coxa x posterior da coxa);
+ * braços e antebraços em lado de dentro (virado para o corpo) e lado de fora,
  * pois mudam dor, tempo de trabalho e, portanto, preço.
  *
- * Convenção: o boneco olha para +Z (para a câmera), na posição anatômica
- * (palmas para a frente). O lado ESQUERDO do boneco fica em +X.
+ * Convenção: o boneco olha para +Z (para a câmera), com as palmas viradas para o
+ * corpo. O lado ESQUERDO do boneco fica em +X.
  */
 export interface Zone {
   id: string
@@ -34,8 +35,9 @@ add('costas', 'costas', 'Costas')
 add('abdomen', 'abdomen', 'Abdômen')
 add('lombar', 'lombar', 'Lombar')
 pair('ombro', 'ombro', 'Ombro')
-pair('biceps', 'braco', 'Braço (bíceps)')
-pair('triceps', 'triceps', 'Braço (tríceps)')
+// ids antigos (biceps/triceps) mantidos para não quebrar pedidos salvos
+pair('biceps', 'braco', 'Braço interno')
+pair('triceps', 'triceps', 'Braço externo')
 pair('antebraco_int', 'antebraco', 'Antebraço interno')
 pair('antebraco_ext', 'antebraco_externo', 'Antebraço externo')
 add('mao_e', 'mao', 'Mão · esquerda')
