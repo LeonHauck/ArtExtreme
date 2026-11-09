@@ -278,7 +278,6 @@ npm run dev                  # http://localhost:5173
 - [x] **Relatórios** com faturamento, clientes, estilos e locais por mês e por ano
 - [x] **Triagem**: primeira tattoo, cobertura/reforma e pedido de avaliação com foto
 - [x] **Agendamento pelo painel**, braço dividido em lado de dentro e de fora, e botão de compartilhar
-- [ ] WhatsApp 100% automático pela API oficial da Meta
 
 <br>
 
