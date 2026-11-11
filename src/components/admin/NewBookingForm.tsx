@@ -27,10 +27,13 @@ interface PlaceRow {
  */
 export function NewBookingForm({
   bookings,
+  initialDate = '',
   onCreated,
   onCancel,
 }: {
   bookings: Booking[]
+  /** Dia já escolhido (ex.: "Agendar neste dia" no calendário) */
+  initialDate?: string
   onCreated: (b: Booking) => void
   onCancel: () => void
 }) {
@@ -46,7 +49,7 @@ export function NewBookingForm({
   const [styleId, setStyleId] = useState(styles[0]?.id ?? '')
   const [color, setColor] = useState(false)
   const [places, setPlaces] = useState<PlaceRow[]>([{ key: uid(), areaId: '', sizeCm: '10' }])
-  const [date, setDate] = useState('')
+  const [date, setDate] = useState(initialDate)
   const [time, setTime] = useState('')
   const [hoursText, setHoursText] = useState('')
   const [priceText, setPriceText] = useState('')

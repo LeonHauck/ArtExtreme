@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarPlus, Check, CheckCheck, ClipboardCheck, ImageOff, Inbox, Loader2, Pencil, RefreshCw, Sparkles, Trash2, X } from 'lucide-react'
+import { CalendarDays, CalendarPlus, Check, CheckCheck, ClipboardCheck, ImageOff, Inbox, List, Loader2, Pencil, RefreshCw, Sparkles, Trash2, X } from 'lucide-react'
 import {
   deleteBooking,
   listBookings,
@@ -18,6 +18,8 @@ import { clientMessage, clientWhatsApp, waLink, type ClientMessageKind } from '@
 import { WhatsAppIcon, InstagramIcon } from '@/components/ui/BrandIcons'
 import { PushBanner } from '@/components/admin/PushControls'
 import { NewBookingForm } from '@/components/admin/NewBookingForm'
+import { CalendarView } from '@/components/admin/CalendarView'
+import { formatWindow } from '@/lib/calendar'
 import { isRemote } from '@/lib/supabase'
 
 const STATUS: Record<BookingStatus, { label: string; className: string }> = {
@@ -32,6 +34,16 @@ const NOTICE_TEXT: Record<string, string> = {
   cancelled: 'Horário cancelado',
   done: 'Sessão concluída 🙌',
   deposit: 'Horário reservado',
+}
+
+/** Lista ou calendário: lembra a última escolha neste aparelho. */
+const VIEW_KEY = 'ae-agenda-view'
+function readView(): 'list' | 'calendar' {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'calendar' ? 'calendar' : 'list'
+  } catch {
+    return 'list'
+  }
 }
 
 type Filter = 'upcoming' | 'pending' | 'history' | 'all'
@@ -465,8 +477,22 @@ export default function Agenda() {
   const wa = useClientWa()
   const bookings = useMemo(() => loaded ?? [], [loaded])
   const [filter, setFilter] = useState<Filter>('upcoming')
-  const [creating, setCreating] = useState(false)
+  const [creating, setCreating] = useState<{ date: string } | null>(null)
+  const [view, setView] = useState<'list' | 'calendar'>(readView)
   const today = toISODate(new Date())
+
+  const changeView = (v: 'list' | 'calendar') => {
+    setView(v)
+    try {
+      localStorage.setItem(VIEW_KEY, v)
+    } catch {
+      /* sem armazenamento: vale só agora */
+    }
+  }
+  const openCreate = (date = '') => {
+    setCreating({ date })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   // Avaliações abertas ficam sempre no topo, fora dos filtros
   const evaluations = useMemo(
@@ -513,7 +539,7 @@ export default function Agenda() {
           <button className="btn btn-ghost btn-sm" onClick={() => void refresh()} title="Atualizar">
             <RefreshCw size={15} /> <span className="hidden sm:inline">Atualizar</span>
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => setCreating(true)} disabled={creating}>
+          <button className="btn btn-primary btn-sm" onClick={() => openCreate()} disabled={!!creating}>
             <CalendarPlus size={15} /> Agendar
           </button>
         </div>
@@ -521,10 +547,12 @@ export default function Agenda() {
 
       {creating && (
         <NewBookingForm
+          key={creating.date}
           bookings={bookings}
-          onCancel={() => setCreating(false)}
+          initialDate={creating.date}
+          onCancel={() => setCreating(null)}
           onCreated={(b) => {
-            setCreating(false)
+            setCreating(null)
             created(b)
           }}
         />
@@ -539,12 +567,33 @@ export default function Agenda() {
         <Stat label="Concluídos" value={stats.done} />
       </div>
 
-      <div className="mt-8 flex gap-2 overflow-x-auto scrollbar-none">
-        {FILTERS.map((f) => (
-          <button key={f.id} className="chip shrink-0" data-active={filter === f.id} onClick={() => setFilter(f.id)}>
-            {f.label}
-          </button>
-        ))}
+      <div className="mt-8 flex flex-wrap items-center gap-2">
+        <div className="flex rounded-full border border-bone/10 p-0.5" role="group" aria-label="Ver como">
+          {(
+            [
+              ['list', 'Lista', List],
+              ['calendar', 'Calendário', CalendarDays],
+            ] as const
+          ).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm transition ${view === id ? 'bg-violet text-white' : 'text-mute hover:text-bone'}`}
+              onClick={() => changeView(id)}
+              aria-pressed={view === id}
+            >
+              <Icon size={15} /> {label}
+            </button>
+          ))}
+        </div>
+        {view === 'list' && (
+          <div className="flex gap-2 overflow-x-auto scrollbar-none">
+            {FILTERS.map((f) => (
+              <button key={f.id} className="chip shrink-0" data-active={filter === f.id} onClick={() => setFilter(f.id)}>
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {error && (
@@ -576,6 +625,49 @@ export default function Agenda() {
         <div className="mt-16 flex justify-center text-mute">
           <Loader2 className="animate-spin" />
         </div>
+      ) : view === 'calendar' ? (
+        <CalendarView
+          bookings={bookings}
+          renderDetail={(s) => (
+            <>
+              <div className="card p-4">
+                {s.iso === today && <p className="eyebrow">Hoje</p>}
+                <h3 className="font-display text-2xl tracking-wide first-letter:uppercase">{formatDateLong(s.iso)}</h3>
+                {!s.open ? (
+                  <p className="mt-1 text-sm text-mute">Estúdio fechado neste dia (folga ou dia sem atendimento).</p>
+                ) : (
+                  <>
+                    <p className="mt-1 text-sm text-mute">
+                      {s.sessions.length === 0
+                        ? 'Nenhum agendamento ainda.'
+                        : `${s.sessions.length} ${s.sessions.length === 1 ? 'sessão' : 'sessões'} · ${formatHours(s.bookedMinutes / 60)} ocupadas`}
+                    </p>
+                    <p className="mt-1 text-sm">
+                      {s.full ? (
+                        <span className="font-semibold text-flame">Dia lotado</span>
+                      ) : (
+                        <>
+                          <span className="text-mute">Livre: </span>
+                          {s.free.map(formatWindow).join(' · ')}
+                        </>
+                      )}
+                    </p>
+                  </>
+                )}
+                {s.iso >= today && (
+                  <button className="btn btn-primary btn-sm mt-3" onClick={() => openCreate(s.iso)}>
+                    <CalendarPlus size={15} /> Agendar neste dia
+                  </button>
+                )}
+              </div>
+              <div className="mt-3 space-y-3">
+                {s.sessions.map((b) => (
+                  <BookingCard key={b.id} b={b} {...actions} />
+                ))}
+              </div>
+            </>
+          )}
+        />
       ) : groups.length === 0 ? (
         <div className="mt-16 text-center text-mute">
           <Inbox className="mx-auto" size={36} strokeWidth={1.4} />

@@ -101,6 +101,7 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 ### Para o Mike (`/admin`)
 
 - 🔐 **Login com e-mail e senha** (Enter já entra, mesmo com a senha salva no navegador).
+- 📅 **Calendário do mês** na Agenda (alterna com a lista): cada dia mostra horário e nome dos clientes, barra de ocupação, "lotado" e dias fechados; tocando no dia, aparecem as janelas livres, os cards completos e o botão "Agendar neste dia".
 - ➕ **Agendar pelo painel**: o Mike marca o horário de alguém direto na Agenda (confirmado, aguardando sinal ou uma sessão que já aconteceu), com a estimativa da tabela, os horários livres do dia e valor combinado.
 - 🔗 **Compartilhar o site** com 1 toque, pelo painel ou pelo rodapé (menu nativo do celular, copiar link ou WhatsApp).
 - 📋 **Avaliações** no topo da agenda, com a foto enviada pelo cliente (armazenamento privado), resposta pronta no WhatsApp e botão para agendar quando fechar.
@@ -278,6 +279,7 @@ npm run dev                  # http://localhost:5173
 - [x] **Relatórios** com faturamento, clientes, estilos e locais por mês e por ano
 - [x] **Triagem**: primeira tattoo, cobertura/reforma e pedido de avaliação com foto
 - [x] **Agendamento pelo painel**, braço dividido em lado de dentro e de fora, e botão de compartilhar
+- [x] **Calendário do mês** com ocupação, dias lotados e janelas livres
 
 <br>
 
