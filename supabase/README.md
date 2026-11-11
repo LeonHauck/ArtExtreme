@@ -123,6 +123,10 @@ SQL Editor → cole e rode [`reports.sql`](reports.sql). Ele cria o campo do **v
 1. SQL Editor → cole e rode [`studio-booking.sql`](studio-booking.sql). Ele deixa o artista criar agendamentos pela Agenda (qualquer data e situação) e marca a origem do pedido (cliente ou estúdio).
 2. Edge Functions → `notify-booking` → **Code** → cole de novo [`functions/notify-booking/index.ts`](functions/notify-booking/index.ts) → **Deploy**. Assim o artista não recebe notificação do agendamento que ele mesmo criou.
 
+## 11. Registro de erros (diagnóstico)
+
+SQL Editor → cole e rode [`errors.sql`](errors.sql). Quando o app der erro no aparelho de alguém, a mensagem fica em **Table Editor → `app_errors`** (sem dados pessoais: mensagem, página, tipo de aparelho e se é o app instalado). Sem essa tabela o app funciona normalmente, só não registra.
+
 ## O que cada um pode fazer
 
 | | Visitante | Administrador |
@@ -138,5 +142,7 @@ SQL Editor → cole e rode [`reports.sql`](reports.sql). Ele cria o campo do **v
 | Enviar foto de referência no pedido | ✅ | ✅ |
 | Ver as fotos de referência e agendar avaliações | ❌ | ✅ |
 | Criar agendamento confirmado ou em qualquer data | ❌ | ✅ |
+| Registrar erro do app (só gravar) | ✅ | ✅ |
+| Ver e apagar o registro de erros | ❌ | ✅ |
 
 Dois pedidos ativos no mesmo horário são bloqueados pelo próprio banco.

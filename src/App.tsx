@@ -1,22 +1,24 @@
-import { lazy, Suspense, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { BrowserRouter, Link, Route, Routes, useNavigate } from 'react-router'
 import { initAuth, useAuth } from '@/store/auth'
 import { isRemote } from '@/lib/supabase'
 import { isStandalone } from '@/lib/push'
+import { lazyPage } from '@/lib/chunkReload'
+import { AppErrorBoundary } from '@/components/AppErrorBoundary'
 import { loadRemoteSettings, startSettingsAutosave } from '@/lib/settingsSync'
 import { SiteLayout } from '@/components/layout/SiteLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import Home from '@/pages/Home'
 
 // Páginas carregadas sob demanda: o 3D e o painel não pesam na página inicial
-const Simulator = lazy(() => import('@/pages/Simulator'))
-const Booking = lazy(() => import('@/pages/Booking'))
-const Agenda = lazy(() => import('@/pages/admin/Agenda'))
-const Pricing = lazy(() => import('@/pages/admin/Pricing'))
-const Settings = lazy(() => import('@/pages/admin/Settings'))
-const ResetPassword = lazy(() => import('@/pages/admin/ResetPassword'))
-const PortfolioAdmin = lazy(() => import('@/pages/admin/Portfolio'))
-const Reports = lazy(() => import('@/pages/admin/Reports'))
+const Simulator = lazyPage(() => import('@/pages/Simulator'))
+const Booking = lazyPage(() => import('@/pages/Booking'))
+const Agenda = lazyPage(() => import('@/pages/admin/Agenda'))
+const Pricing = lazyPage(() => import('@/pages/admin/Pricing'))
+const Settings = lazyPage(() => import('@/pages/admin/Settings'))
+const ResetPassword = lazyPage(() => import('@/pages/admin/ResetPassword'))
+const PortfolioAdmin = lazyPage(() => import('@/pages/admin/Portfolio'))
+const Reports = lazyPage(() => import('@/pages/admin/Reports'))
 
 function PageLoader() {
   return (
@@ -67,27 +69,29 @@ export default function App() {
   }, [])
 
   return (
-    <BrowserRouter>
-      <OpenPanelOnLaunch />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route element={<SiteLayout />}>
-            <Route index element={<Home />} />
-            <Route path="orcamento" element={<Simulator />} />
-            <Route path="agendar" element={<Booking />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-          {/* Fora do layout do painel: quem chega pelo link do e-mail ainda não está logado */}
-          <Route path="admin/nova-senha" element={<ResetPassword />} />
-          <Route path="admin" element={<AdminLayout />}>
-            <Route index element={<Agenda />} />
-            <Route path="precos" element={<Pricing />} />
-            <Route path="portfolio" element={<PortfolioAdmin />} />
-            <Route path="relatorios" element={<Reports />} />
-            <Route path="config" element={<Settings />} />
-          </Route>
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    <AppErrorBoundary>
+      <BrowserRouter>
+        <OpenPanelOnLaunch />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route element={<SiteLayout />}>
+              <Route index element={<Home />} />
+              <Route path="orcamento" element={<Simulator />} />
+              <Route path="agendar" element={<Booking />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+            {/* Fora do layout do painel: quem chega pelo link do e-mail ainda não está logado */}
+            <Route path="admin/nova-senha" element={<ResetPassword />} />
+            <Route path="admin" element={<AdminLayout />}>
+              <Route index element={<Agenda />} />
+              <Route path="precos" element={<Pricing />} />
+              <Route path="portfolio" element={<PortfolioAdmin />} />
+              <Route path="relatorios" element={<Reports />} />
+              <Route path="config" element={<Settings />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </AppErrorBoundary>
   )
 }

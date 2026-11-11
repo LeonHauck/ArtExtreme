@@ -3,6 +3,7 @@ import { CalendarDays, CalendarPlus, Check, CheckCheck, ClipboardCheck, ImageOff
 import {
   deleteBooking,
   listBookings,
+  onAppResume,
   onBookingsChange,
   scheduleEvaluation,
   setBookingDone,
@@ -406,11 +407,10 @@ function useAdminBookings() {
   useEffect(() => {
     void refresh()
     const stop = onBookingsChange(() => void refresh())
-    const onFocus = () => void refresh()
-    window.addEventListener('focus', onFocus)
+    const stopResume = onAppResume(() => void refresh())
     return () => {
       stop()
-      window.removeEventListener('focus', onFocus)
+      stopResume()
     }
   }, [refresh])
 

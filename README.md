@@ -207,6 +207,7 @@ O backend é o **Supabase**, e a regra de ouro é: **o cliente nunca vê dados d
 - 🛡️ **Row Level Security** em todas as tabelas, com permissões liberadas uma a uma (nada fica exposto por padrão).
 - ⛔ **Trava de horário no próprio banco**: dois clientes clicando no mesmo horário ao mesmo tempo? Só um leva; o outro vê "esse horário acabou de ser reservado".
 - 🔑 Cadastro público desligado: só entra no painel quem está na tabela de administradores.
+- 🩺 **Não trava com atualização**: se o app estava aberto quando saiu uma versão nova, ele recarrega sozinho em vez de ficar com a tela vazia; qualquer outro erro mostra "Recarregar", e pedidos lentos têm tempo-limite. Os erros ficam registrados (sem dados pessoais) para diagnóstico.
 - 🔔 **Push com Web Push + VAPID**: o banco dispara um webhook a cada pedido, uma Edge Function cifra a notificação e entrega nos aparelhos do Mike. A chave privada fica só nos Secrets do Supabase.
 
 O script completo está em [`supabase/schema.sql`](supabase/schema.sql) e o passo a passo em [`supabase/README.md`](supabase/README.md).

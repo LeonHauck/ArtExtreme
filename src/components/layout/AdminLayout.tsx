@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { CalendarCheck, ChartColumn, Check, CloudOff, ExternalLink, Images, Loader2, Lock, LogOut, Settings, Tags } from 'lucide-react'
+import { CalendarCheck, ChartColumn, Check, CloudOff, ExternalLink, Images, Loader2, Lock, LogOut, RotateCw, Settings, Tags } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { InstallAppButton } from '@/components/InstallAppButton'
 import { ShareButton } from '@/components/ShareButton'
@@ -10,6 +10,7 @@ import { signIn, signOut, useAuth } from '@/store/auth'
 import { useSync } from '@/lib/settingsSync'
 import { isRemote } from '@/lib/supabase'
 import { disablePush, syncPush } from '@/lib/push'
+import { reportError } from '@/lib/errorLog'
 import { endAdminSession, isAdminSession, startAdminSession } from '@/lib/auth'
 
 const TABS = [
@@ -65,18 +66,39 @@ function LoginForm() {
   )
 }
 
+/** Carregando o login; se passar de 8 s (internet ruim), oferece tentar de novo. */
+function SlowLoading() {
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSlow(true)
+      reportError('login-lento', 'Painel demorou mais de 8 s para abrir', navigator.onLine ? 'online' : 'sem internet')
+    }, 8000)
+    return () => clearTimeout(t)
+  }, [])
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center text-mute">
+      <Loader2 className="animate-spin" />
+      {slow && (
+        <div className="animate-fade-up">
+          <p className="text-sm">
+            {navigator.onLine ? 'Está demorando mais que o normal. Pode ser a internet.' : 'Parece que o aparelho está sem internet.'}
+          </p>
+          <button type="button" className="btn btn-outline btn-sm mt-3" onClick={() => window.location.reload()}>
+            <RotateCw size={15} /> Tentar de novo
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function RemoteGate() {
   const ready = useAuth((s) => s.ready)
   const isAdmin = useAuth((s) => s.isAdmin)
   const navigate = useNavigate()
 
-  if (!ready) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center text-mute">
-        <Loader2 className="animate-spin" />
-      </div>
-    )
-  }
+  if (!ready) return <SlowLoading />
   if (!isAdmin) return <LoginForm />
   return (
     <AdminShell

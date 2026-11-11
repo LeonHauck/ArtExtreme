@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Info, Loader2, RefreshCw, Repeat2, UserPlus } from 'lucide-react'
-import { listBookings, onBookingsChange } from '@/lib/bookingsRepo'
+import { listBookings, onAppResume, onBookingsChange } from '@/lib/bookingsRepo'
 import {
   MONTHS_SHORT,
   buildReport,
@@ -33,7 +33,11 @@ function useBookings() {
   useEffect(() => {
     void refresh()
     const stop = onBookingsChange(() => void refresh())
-    return stop
+    const stopResume = onAppResume(() => void refresh())
+    return () => {
+      stop()
+      stopResume()
+    }
   }, [refresh])
   return { bookings, error, refresh }
 }

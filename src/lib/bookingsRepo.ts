@@ -170,12 +170,32 @@ export async function deleteBooking(id: string, referencePath?: string | null): 
   if (referencePath) await removeReference(referencePath).catch(() => {})
 }
 
+/**
+ * Chama `callback` ao voltar para o app (celular saindo do segundo plano, outra aba).
+ * No celular, o tempo real pode ter caído enquanto o app estava parado.
+ */
+export function onAppResume(callback: () => void): () => void {
+  let hiddenAt = 0
+  const onVisibility = () => {
+    if (document.visibilityState === 'hidden') hiddenAt = Date.now()
+    else if (Date.now() - hiddenAt > 2000) callback()
+  }
+  document.addEventListener('visibilitychange', onVisibility)
+  window.addEventListener('focus', callback)
+  window.addEventListener('online', callback)
+  return () => {
+    document.removeEventListener('visibilitychange', onVisibility)
+    window.removeEventListener('focus', callback)
+    window.removeEventListener('online', callback)
+  }
+}
+
 /** Avisa quando chega/muda um pedido (tempo real). Retorna a função para parar. */
 export function onBookingsChange(callback: () => void): () => void {
   if (!supabase) return useStudio.subscribe((s, prev) => s.bookings !== prev.bookings && callback())
   const client = supabase
   const channel = client
-    .channel('bookings-admin')
+    .channel(`bookings-admin-${Math.random().toString(36).slice(2, 8)}`) // um canal por tela
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => callback())
     .subscribe()
   return () => {
