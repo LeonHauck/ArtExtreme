@@ -153,6 +153,10 @@ Tudo isso mora em [`src/lib/pricing.ts`](src/lib/pricing.ts), coberto por testes
 | :---: |
 | <img src="docs/screenshots/portfolio.webp" alt="Portfólio"> |
 
+| Agenda em calendário | No celular |
+| :---: | :---: |
+| <img src="docs/screenshots/agenda-calendario.webp" alt="Calendário do mês com clientes, ocupação, dias lotados e o detalhe do dia"> | <img src="docs/screenshots/agenda-calendario-mobile.webp" alt="Calendário no celular" width="260"> |
+
 | Relatórios do Mike | No celular |
 | :---: | :---: |
 | <img src="docs/screenshots/relatorios.webp" alt="Relatórios: faturamento do mês, indicadores e gráfico por mês"> | <img src="docs/screenshots/relatorios-mobile.webp" alt="Relatórios no celular" width="260"> |
