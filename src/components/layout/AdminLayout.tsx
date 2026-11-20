@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { CalendarCheck, ChartColumn, Check, CloudOff, ExternalLink, Images, Loader2, Lock, LogOut, RotateCw, Settings, Tags } from 'lucide-react'
+import { ArrowLeft, CalendarCheck, ChartColumn, Check, CloudOff, ExternalLink, Images, Loader2, Lock, LogOut, RotateCw, Settings, Tags } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { InstallAppButton } from '@/components/InstallAppButton'
 import { ShareButton } from '@/components/ShareButton'
@@ -240,6 +240,14 @@ function AdminShell({ onLogout }: { onLogout: () => void }) {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <Outlet />
       </main>
+      <Link
+        to="/"
+        className="btn btn-primary fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 z-40 h-12 w-12 rounded-full p-0 shadow-lg md:hidden"
+        aria-label="Voltar para o site"
+        title="Voltar para o site"
+      >
+        <ArrowLeft size={20} />
+      </Link>
     </div>
   )
 }

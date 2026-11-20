@@ -163,6 +163,20 @@ export async function scheduleEvaluation(b: Booking, date: string, time: string,
   }
 }
 
+/** Altera data, horário e duração de uma sessão existente sem mudar a situação. */
+export async function updateBookingSchedule(b: Booking, date: string, time: string, hours: number): Promise<void> {
+  const estimate = { ...b.estimate, hours }
+  if (!supabase) return useStudio.getState().updateBooking(b.id, { date, time, estimate })
+  const { error } = await supabase
+    .from('bookings')
+    .update({ session_date: date, start_time: time, hours, estimate })
+    .eq('id', b.id)
+  if (error) {
+    if (error.code === 'P0001') throw new SlotTakenError()
+    throw error
+  }
+}
+
 export async function deleteBooking(id: string, referencePath?: string | null): Promise<void> {
   if (!supabase) return useStudio.getState().removeBooking(id)
   const { error } = await supabase.from('bookings').delete().eq('id', id)

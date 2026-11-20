@@ -9,6 +9,7 @@ import {
   setBookingDone,
   setBookingStatus,
   SlotTakenError,
+  updateBookingSchedule,
 } from '@/lib/bookingsRepo'
 import { referenceUrl } from '@/lib/referenceRepo'
 import { COVER_LABEL, isEvaluation, isOpenEvaluation } from '@/lib/triage'
@@ -70,6 +71,7 @@ interface CardActions {
   setStatus: (id: string, status: BookingStatus) => void
   finish: (id: string, price: number | null) => void
   schedule: (b: Booking, date: string, time: string, hours: number) => void
+  editSchedule: (b: Booking, date: string, time: string, hours: number) => void
   remove: (b: Booking) => void
 }
 
@@ -165,6 +167,56 @@ function ScheduleForm({ b, onSave, onCancel }: { b: Booking; onSave: (date: stri
   )
 }
 
+/** Edita data, início e duração de uma sessão já marcada. */
+function EditScheduleForm({
+  b,
+  onSave,
+  onCancel,
+}: {
+  b: Booking
+  onSave: (date: string, time: string, hours: number) => void
+  onCancel: () => void
+}) {
+  const today = toISODate(new Date())
+  const [date, setDate] = useState(b.date)
+  const [time, setTime] = useState(b.time)
+  const [hours, setHours] = useState(String(b.estimate.hours))
+  const h = Number(hours.replace(',', '.'))
+  const valid = date >= today && /^\d{2}:\d{2}$/.test(time) && h > 0 && h <= 12
+
+  return (
+    <form
+      className="mt-4 rounded-md border border-violet/30 bg-violet/5 p-3"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (valid) onSave(date, time, h)
+      }}
+    >
+      <p className="text-sm font-semibold">Editar horário</p>
+      <div className="mt-2 flex flex-wrap items-end gap-2">
+        <label className="text-xs text-mute">
+          Dia
+          <input type="date" className="input mt-1 py-2 text-sm" min={today} value={date} onChange={(e) => setDate(e.target.value)} />
+        </label>
+        <label className="text-xs text-mute">
+          Início
+          <input type="time" className="input mt-1 w-28 py-2 text-sm" step={900} value={time} onChange={(e) => setTime(e.target.value)} />
+        </label>
+        <label className="text-xs text-mute">
+          Duração (h)
+          <input className="input mt-1 w-20 py-2 text-sm" inputMode="decimal" value={hours} onChange={(e) => setHours(e.target.value)} />
+        </label>
+        <button className="btn btn-primary btn-sm" disabled={!valid}>
+          <Check size={15} /> Salvar
+        </button>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  )
+}
+
 /** "Quanto você cobrou?" ao concluir (ou para corrigir depois). Vai para os Relatórios. */
 function FinishForm({ b, onSave, onCancel }: { b: Booking; onSave: (price: number | null) => void; onCancel: () => void }) {
   const [value, setValue] = useState(String(Math.round(b.finalPrice ?? b.estimate.value)))
@@ -212,10 +264,11 @@ function useClientWa() {
   return (kind: ClientMessageKind, b: Booking) => waLink(clientWhatsApp(b), clientMessage(kind, b, studio, window.location.origin))
 }
 
-function BookingCard({ b, setStatus, finish, schedule, remove }: { b: Booking } & CardActions) {
+function BookingCard({ b, setStatus, finish, schedule, editSchedule, remove }: { b: Booking } & CardActions) {
   const wa = useClientWa()
   const [finishing, setFinishing] = useState(false)
   const [scheduling, setScheduling] = useState(false)
+  const [editingSchedule, setEditingSchedule] = useState(false)
   const st = STATUS[b.status]
   const evaluation = isEvaluation(b)
   const openEvaluation = isOpenEvaluation(b)
@@ -325,6 +378,17 @@ function BookingCard({ b, setStatus, finish, schedule, remove }: { b: Booking } 
         />
       )}
 
+      {editingSchedule && (
+        <EditScheduleForm
+          b={b}
+          onCancel={() => setEditingSchedule(false)}
+          onSave={(date, time, hours) => {
+            setEditingSchedule(false)
+            editSchedule(b, date, time, hours)
+          }}
+        />
+      )}
+
       {finishing && (
         <FinishForm
           b={b}
@@ -369,6 +433,11 @@ function BookingCard({ b, setStatus, finish, schedule, remove }: { b: Booking } 
         {b.status === 'confirmed' && (
           <button className="btn btn-outline btn-sm" onClick={() => setFinishing(true)} disabled={finishing}>
             <CheckCheck size={15} /> Concluir
+          </button>
+        )}
+        {active && !openEvaluation && (
+          <button className="btn btn-outline btn-sm" onClick={() => setEditingSchedule(true)} disabled={editingSchedule}>
+            <Pencil size={15} /> Editar horário
           </button>
         )}
         {active && !openEvaluation && (
@@ -444,6 +513,9 @@ function useAdminBookings() {
       })
   }
 
+  const editSchedule = (b: Booking, date: string, time: string, hours: number) =>
+    void run(() => updateBookingSchedule(b, date, time, hours))
+
   const finish = async (id: string, price: number | null) => {
     const booking = bookings?.find((b) => b.id === id)
     const ok = await run(() => setBookingDone(id, price))
@@ -468,6 +540,7 @@ function useAdminBookings() {
     setStatus: (id: string, status: BookingStatus) => void setStatus(id, status),
     finish: (id: string, price: number | null) => void finish(id, price),
     schedule: (b: Booking, date: string, time: string, hours: number) => void schedule(b, date, time, hours),
+    editSchedule: (b: Booking, date: string, time: string, hours: number) => void editSchedule(b, date, time, hours),
     remove: (b: Booking) => void run(() => deleteBooking(b.id, b.referencePath)),
   }
 }
