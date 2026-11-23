@@ -101,7 +101,7 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 ### Para o Mike (`/admin`)
 
 - 🔐 **Login com e-mail e senha** (Enter já entra, mesmo com a senha salva no navegador).
-- 🏷️ **Banner de promoção editável** (aba Promoções): título, % de desconto, texto, botão, datas de início e fim com contagem regressiva e modelos prontos. 6 visuais: Dourado, Neon roxo e Fogo, e os temáticos **Natal** (pisca-pisca, neve e gorro), **Ano Novo** (fogos) e **Páscoa** (coelho e ovinhos), com animação que respeita quem prefere menos movimento.
+- 🏷️ **Banner de promoção editável** (aba Promoções): título, % de desconto, texto, botão, datas de início e fim com contagem regressiva e modelos prontos. 7 visuais: Dourado, Neon roxo e Fogo, e os temáticos **Black Friday** (preto, luzes prateadas e letras em grafite cromado), **Natal** (pisca-pisca, neve e gorro), **Ano Novo** (fogos) e **Páscoa** (coelho e ovinhos), com animação que respeita quem prefere menos movimento. O banner pode ser **ligado a um cupom**: o % e o código ("Use o cupom ART40") vêm dele, o botão já leva o cupom para o agendamento e, se o cupom for pausado ou vencer, o banner volta ao % manual sem anunciar um código que não funciona.
 - 🎟️ **Cupons de desconto**: o Mike cria o código (ex.: ART40 = 40%), validade e pausa quando quiser; o cliente aplica no final do agendamento e já vê o valor com desconto; cada WhatsApp usa cada cupom uma vez (regra garantida pelo banco).
 - ⏳ **Popup do cupom** com timer individual por visitante, totalmente editável, e botão "Usar meu cupom" que já leva o código para o agendamento.
 - 📅 **Calendário do mês** na Agenda (alterna com a lista): cada dia mostra horário e nome dos clientes, barra de ocupação, "lotado" e dias fechados; tocando no dia, aparecem as janelas livres, os cards completos e o botão "Agendar neste dia".
@@ -155,6 +155,18 @@ Tudo isso mora em [`src/lib/pricing.ts`](src/lib/pricing.ts), coberto por testes
 | Portfólio em esteira infinita |
 | :---: |
 | <img src="docs/screenshots/portfolio.webp" alt="Portfólio"> |
+
+| Promoções: banners temáticos com contagem regressiva |
+| :---: |
+| <img src="docs/screenshots/promo-temas.webp" alt="Banners de Black Friday, Natal, Ano Novo e Páscoa"> |
+
+| Popup do cupom com timer | Cupom na Agenda do Mike |
+| :---: | :---: |
+| <img src="docs/screenshots/promo-popup-mobile.webp" alt="Popup oferecendo o cupom ART40 com timer" width="260"> | <img src="docs/screenshots/promo-agenda-cupom-mobile.webp" alt="Pedido na Agenda com a etiqueta do cupom e o valor antigo riscado" width="300"> |
+
+| Painel: popup do cupom editável, com prévia |
+| :---: |
+| <img src="docs/screenshots/promo-painel-popup.webp" alt="Editor do popup do cupom no painel"> |
 
 | Agenda em calendário | No celular |
 | :---: | :---: |

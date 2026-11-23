@@ -10,11 +10,12 @@ export const defaultPromo: PromoBanner = {
   text: 'Desconto especial para tattoos agendadas durante a promoção.',
   ctaLabel: 'Quero meu desconto',
   ctaLink: 'simulator',
-  theme: 'gold',
+  theme: 'blackfriday',
   startsOn: '',
   endsOn: '',
   showHome: true,
   showStrip: true,
+  couponCode: '',
 }
 
 export const getPromo = (studio: StudioInfo): PromoBanner => ({ ...defaultPromo, ...studio.promo })

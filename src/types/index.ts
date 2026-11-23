@@ -54,7 +54,7 @@ export interface PricingConfig {
 }
 
 /** Visual do banner de promoção (sempre dentro da paleta do estúdio). */
-export type PromoTheme = 'gold' | 'rave' | 'fire' | 'xmas' | 'newyear' | 'easter'
+export type PromoTheme = 'blackfriday' | 'gold' | 'rave' | 'fire' | 'xmas' | 'newyear' | 'easter'
 
 /** Banner de promoção editável (Black Friday, Natal...). */
 export interface PromoBanner {
@@ -71,6 +71,8 @@ export interface PromoBanner {
   endsOn: string
   showHome: boolean
   showStrip: boolean
+  /** Cupom ligado ao banner: o % vem dele e o código aparece no banner (vazio = % manual) */
+  couponCode?: string
 }
 
 export interface StudioInfo {

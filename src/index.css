@@ -207,3 +207,20 @@ input[type='range'].range::-moz-range-thumb {
   .promo-twinkle, .promo-snow, .promo-firework, .promo-bob { animation: none; }
   .promo-snow { display: none; }
 }
+
+/* Black Friday: letras cromadas e feixe de luz prateado */
+.text-chrome {
+  background: linear-gradient(180deg, #ffffff 0%, #e4e4e7 30%, #8b8b95 52%, #f4f4f5 70%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.22));
+}
+@keyframes promo-sweep {
+  0%, 100% { transform: translateX(-30%) rotate(18deg); opacity: 0.5; }
+  50% { transform: translateX(130%) rotate(18deg); opacity: 1; }
+}
+.promo-sweep { animation: promo-sweep 9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .promo-sweep { animation: none; }
+}

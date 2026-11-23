@@ -15,7 +15,7 @@ import type { Coupon, CouponPopup, PromoBanner, PromoTheme } from '@/types'
 const TEMPLATES: { name: string; patch: Partial<PromoBanner> }[] = [
   {
     name: 'Black Friday',
-    patch: { title: 'Black Friday', percent: 30, theme: 'gold', text: 'Desconto especial para tattoos agendadas durante a Black Friday.', ctaLabel: 'Quero meu desconto' },
+    patch: { title: 'Black Friday', percent: 30, theme: 'blackfriday', text: 'Desconto especial para tattoos agendadas durante a Black Friday.', ctaLabel: 'Quero meu desconto' },
   },
   {
     name: 'Natal',
@@ -53,11 +53,15 @@ function Status({ promo }: { promo: PromoBanner }) {
   return <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${cls}`}>{text}</span>
 }
 
-function BannerEditor() {
+function BannerEditor({ coupons }: { coupons: Coupon[] }) {
   const studio = useStudio((s) => s.studio)
   const updateStudio = useStudio((s) => s.updateStudio)
   const promo = getPromo(studio)
   const set = (patch: Partial<PromoBanner>) => updateStudio({ promo: { ...promo, ...patch } })
+  // Cupom ligado: o % do banner vem dele (se pausar ou vencer, volta ao % manual)
+  const linked = promo.couponCode ? coupons.find((c) => c.code === promo.couponCode) : undefined
+  const linkedOk = !!linked && couponStatus(linked).text === 'Valendo'
+  const previewPercent = linkedOk ? linked.percent : null
 
   return (
     <section className="card p-5 sm:p-6">
@@ -87,9 +91,33 @@ function BannerEditor() {
         <Field label="Título">
           <input className="input" value={promo.title} maxLength={40} onChange={(e) => set({ title: e.target.value })} />
         </Field>
-        <Field label="Desconto" hint="0 = sem número">
-          <NumberField value={promo.percent} min={0} max={100} suffix="%" onCommit={(percent) => set({ percent: Math.round(percent) })} />
+        <Field label="Desconto" hint={linkedOk ? 'Vem do cupom' : '0 = sem número'}>
+          {linkedOk ? (
+            <p className="input flex items-center text-mute">{linked.percent}%</p>
+          ) : (
+            <NumberField value={promo.percent} min={0} max={100} suffix="%" onCommit={(percent) => set({ percent: Math.round(percent) })} />
+          )}
         </Field>
+        <Field
+          label="Cupom da promoção"
+          className="sm:col-span-2"
+          hint="O banner mostra o % e o código do cupom. Quem tocar no botão já chega no agendamento com o cupom aplicado."
+        >
+          <select className="input" value={promo.couponCode ?? ''} onChange={(e) => set({ couponCode: e.target.value })}>
+            <option value="">Nenhum (usar o % digitado)</option>
+            {coupons.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.code} · {c.percent}% {couponStatus(c).text !== 'Valendo' ? `(${couponStatus(c).text.toLowerCase()})` : ''}
+              </option>
+            ))}
+          </select>
+        </Field>
+        {promo.couponCode && !linkedOk && (
+          <p className="text-sm text-sun sm:col-span-2">
+            {linked ? 'Esse cupom não está valendo agora:' : 'Esse cupom não existe mais:'} o banner usa o {promo.percent}% digitado e não mostra
+            código.
+          </p>
+        )}
         <Field label="Texto" className="sm:col-span-2">
           <textarea className="input min-h-16" value={promo.text} maxLength={160} onChange={(e) => set({ text: e.target.value })} />
         </Field>
@@ -136,12 +164,13 @@ function BannerEditor() {
         <Eye size={15} /> Prévia
       </p>
       <div className="mt-2 space-y-3 rounded-lg border border-bone/10 bg-ink/60 p-3">
-        {promo.showStrip && <PromoStrip promo={promo} preview />}
-        {promo.showHome && <PromoHero promo={promo} preview />}
+        {promo.showStrip && <PromoStrip promo={promo} preview couponPercent={previewPercent} />}
+        {promo.showHome && <PromoHero promo={promo} preview couponPercent={previewPercent} />}
         {!promo.showStrip && !promo.showHome && <p className="py-6 text-center text-sm text-mute">Escolha onde o banner aparece.</p>}
       </div>
       <p className="mt-3 text-xs text-mute">
-        O banner divulga a promoção. O desconto em si entra pelo cupom (abaixo) ou pelo valor combinado na Agenda.
+        O banner divulga a promoção. O desconto em si só entra pelo cupom (ligado acima ou digitado pelo cliente) ou pelo valor combinado na
+        Agenda.
       </p>
     </section>
   )
@@ -393,7 +422,7 @@ export default function Promotions() {
         <h1 className="font-display text-4xl tracking-wide">Promoções</h1>
         <p className="text-xs text-mute">Alterações salvas automaticamente</p>
       </div>
-      <BannerEditor />
+      <BannerEditor coupons={coupons.list ?? []} />
       <CouponsPanel state={coupons} />
       {!coupons.missing && <PopupPanel coupons={coupons.list ?? []} />}
     </div>

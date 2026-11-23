@@ -169,7 +169,61 @@ function Easter() {
   )
 }
 
-export const isSeasonal = (theme: PromoTheme) => theme === 'xmas' || theme === 'newyear' || theme === 'easter'
+/** Brilho de 4 pontas (estrelinha prateada). */
+function Sparkle({ style }: { style: CSSProperties }) {
+  return (
+    <svg className="promo-twinkle absolute" style={style} viewBox="0 0 20 20" aria-hidden>
+      <path d="M10 0 C 11 7, 13 9, 20 10 C 13 11, 11 13, 10 20 C 9 13, 7 11, 0 10 C 7 9, 9 7, 10 0 Z" fill="#f4f4f5" />
+    </svg>
+  )
+}
+
+/** Fileira de lâmpadas prateadas (letreiro de show), acendendo alternado. */
+function SilverMarquee({ edge }: { edge: 'top' | 'bottom' }) {
+  const n = 26
+  return (
+    <div className={`absolute inset-x-3 flex justify-between ${edge === 'top' ? 'top-2' : 'bottom-2'}`}>
+      {Array.from({ length: n }, (_, i) => (
+        <span
+          key={i}
+          className="promo-twinkle h-1.5 w-1.5 rounded-full bg-zinc-100"
+          style={{ color: '#ffffff', animationDelay: `${(i % 2) * 0.8 + (edge === 'bottom' ? 0.4 : 0)}s`, animationDuration: '1.6s' }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function BlackFriday() {
+  return (
+    <>
+      {/* Feixe de luz passando devagar */}
+      <div className="promo-sweep absolute -top-1/2 left-0 h-[200%] w-24 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-md" />
+      <SilverMarquee edge="top" />
+      <SilverMarquee edge="bottom" />
+      {Array.from({ length: 16 }, (_, i) => {
+        const size = 6 + rand(i, 11) * 10
+        return (
+          <Sparkle
+            key={i}
+            style={{
+              left: `${rand(i, 12) * 100}%`,
+              top: `${12 + rand(i, 13) * 76}%`,
+              width: size,
+              height: size,
+              opacity: 0.35 + rand(i, 14) * 0.5,
+              color: '#ffffff',
+              animationDelay: `${rand(i, 15) * 2}s`,
+              animationDuration: `${1.4 + rand(i, 16) * 1.6}s`,
+            }}
+          />
+        )
+      })}
+    </>
+  )
+}
+
+export const isSeasonal = (theme: PromoTheme) => theme === 'xmas' || theme === 'newyear' || theme === 'easter' || theme === 'blackfriday'
 
 /** Camada de enfeites atrás do conteúdo do banner. */
 export function PromoDecor({ theme }: { theme: PromoTheme }) {
@@ -184,6 +238,7 @@ export function PromoDecor({ theme }: { theme: PromoTheme }) {
       )}
       {theme === 'newyear' && <Fireworks />}
       {theme === 'easter' && <Easter />}
+      {theme === 'blackfriday' && <BlackFriday />}
     </div>
   )
 }
