@@ -1,17 +1,27 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import { ArrowRight, CalendarX2, Camera, Check, ClipboardCheck, Loader2, Pencil, ScanLine, Sparkles, X } from 'lucide-react'
+import { ArrowRight, CalendarX2, Camera, Check, ClipboardCheck, Loader2, Pencil, ScanLine, Sparkles, TicketPercent, X } from 'lucide-react'
 import { useStudio } from '@/store/studio'
 import { useEstimate } from '@/hooks/useEstimate'
 import { availableSlots, bookableDates, type BusySlot } from '@/lib/schedule'
 import { createBooking, fetchBusy, SlotTakenError } from '@/lib/bookingsRepo'
 import { uploadReference } from '@/lib/referenceRepo'
 import { FIRST_TATTOO_TIPS, REASON_TEXT, evaluationReason } from '@/lib/triage'
+import { CouponError, SAVED_COUPON_KEY, applyCouponDiscount, checkCoupon, normalizeCode } from '@/lib/coupons'
 import { formatBRL, formatDateLong, formatHours, maskPhone, onlyDigits, parseISODate, uid, formatPriceRange } from '@/lib/format'
 import { bookingMessageToStudio, waLink } from '@/lib/whatsapp'
 import { WhatsAppIcon } from '@/components/ui/BrandIcons'
 import { Ornament } from '@/components/ui/Ornament'
 import type { Booking as BookingT, CoverType } from '@/types'
+
+/** Cupom guardado pelo popup ("Usar meu cupom"). */
+function readSavedCoupon(): string {
+  try {
+    return localStorage.getItem(SAVED_COUPON_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
 
 const emptyForm = { name: '', phone: '', instagram: '', notes: '', adult: false }
 
@@ -103,6 +113,11 @@ function Success({ booking }: { booking: BookingT }) {
           ? 'O Mike vai avaliar seu projeto e te chamar no WhatsApp com o valor e as datas.'
           : `${formatDateLong(booking.date)} às ${booking.time}`}
       </p>
+      {booking.coupon && (
+        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-400">
+          <TicketPercent size={15} /> Cupom {booking.coupon.code} aplicado: −{booking.coupon.percent}%
+        </p>
+      )}
       <Ornament className="my-8" />
 
       {booking.firstTattoo && <FirstTattooCard />}
@@ -160,6 +175,31 @@ export default function Booking() {
     [photoPreview],
   )
 
+  // Cupom de desconto (pode vir preenchido pelo popup)
+  const [couponInput, setCouponInput] = useState(readSavedCoupon)
+  const [coupon, setCoupon] = useState<{ code: string; percent: number } | null>(null)
+  const [couponMsg, setCouponMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [checkingCoupon, setCheckingCoupon] = useState(false)
+  const applyCoupon = useCallback(async (raw: string, phone?: string) => {
+    const code = normalizeCode(raw)
+    if (!code) return
+    setCheckingCoupon(true)
+    const r = await checkCoupon(code, phone && phone.length >= 10 ? phone : undefined)
+    setCheckingCoupon(false)
+    if (r.valid && r.percent) {
+      setCoupon({ code, percent: r.percent })
+      setCouponMsg({ ok: true, text: `Cupom ${code} aplicado: ${r.percent}% de desconto.` })
+    } else {
+      setCoupon(null)
+      setCouponMsg({ ok: false, text: r.reason ?? 'Cupom inválido' })
+    }
+  }, [])
+  // Veio do popup com um cupom guardado: já aplica
+  useEffect(() => {
+    const saved = readSavedCoupon()
+    if (saved) void applyCoupon(saved)
+  }, [applyCoupon])
+
   const dates = useMemo(() => bookableDates(schedule), [schedule])
 
   // Horários ocupados (no banco, sem dados de clientes)
@@ -196,6 +236,8 @@ export default function Booking() {
   const reasonText = reason ? REASON_TEXT[reason] : null
   const personOk = form.name.trim().length >= 2 && onlyDigits(form.phone).length >= 10 && form.adult && !sending
   const valid = evaluation ? personOk && (!reasonText?.photoRequired || !!photo) : !!(date && time) && personOk
+  // Valores com o cupom (o original fica guardado para o Mike ver)
+  const shown = coupon ? applyCouponDiscount(estimate, coupon.percent) : estimate
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -222,7 +264,8 @@ export default function Booking() {
         instagram: form.instagram.replace('@', '').trim(),
       },
       tattoo: { ...draft, placementLabels: placements.map((p) => p.label), styleName: style.name },
-      estimate,
+      estimate: shown,
+      coupon,
       date: evaluation ? '' : date!,
       time: evaluation ? '' : time!,
       notes: form.notes.trim(),
@@ -234,6 +277,11 @@ export default function Booking() {
     try {
       await createBooking(booking)
       resetDraft()
+      try {
+        localStorage.removeItem(SAVED_COUPON_KEY)
+      } catch {
+        /* sem armazenamento */
+      }
       setDone(booking)
       window.scrollTo({ top: 0 })
     } catch (err) {
@@ -242,6 +290,11 @@ export default function Booking() {
         setTime(null)
         await loadBusy()
         setError(err.message)
+      } else if (err instanceof CouponError) {
+        // O banco recusou o cupom (ex.: esse WhatsApp já usou): tira o desconto
+        setCoupon(null)
+        setCouponMsg({ ok: false, text: err.message })
+        setError(`${err.message}. Remova ou troque o cupom e envie de novo.`)
       } else {
         setError('Não foi possível enviar o pedido. Verifique sua internet e tente de novo.')
       }
@@ -280,12 +333,19 @@ export default function Booking() {
         </div>
         <div className="flex shrink-0 items-center gap-4 sm:text-right">
           <div>
+            {coupon && (
+              <p className="text-sm text-mute tabular-nums line-through">
+                {evaluation ? `a partir de ${formatBRL(estimate.low)}` : formatPriceRange(estimate.low, estimate.high)}
+              </p>
+            )}
             <p className="text-rave font-display text-2xl tracking-wide tabular-nums">
               {evaluation
-                ? `a partir de ${formatBRL(estimate.low)}`
-                : formatPriceRange(estimate.low, estimate.high)}
+                ? `a partir de ${formatBRL(shown.low)}`
+                : formatPriceRange(shown.low, shown.high)}
             </p>
-            <p className="text-xs text-mute">{evaluation ? 'valor final na avaliação' : 'estimativa'}</p>
+            <p className="text-xs text-mute">
+              {coupon ? `com cupom ${coupon.code} (−${coupon.percent}%)` : evaluation ? 'valor final na avaliação' : 'estimativa'}
+            </p>
           </div>
           <Link to="/orcamento" className="btn btn-outline btn-sm" aria-label="Editar tattoo">
             <Pencil size={15} />
@@ -495,6 +555,72 @@ export default function Booking() {
             Tenho 18 anos ou mais e vou apresentar documento com foto no dia da sessão.
           </span>
         </label>
+      </section>
+
+      {/* Cupom de desconto */}
+      <section className={`mt-8 rounded-md border p-4 ${coupon ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-dashed border-bone/20'}`}>
+        <label htmlFor="coupon" className="label flex items-center gap-1.5">
+          <TicketPercent size={14} /> Cupom de desconto <span className="normal-case tracking-normal opacity-60">(opcional)</span>
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="coupon"
+            className="input min-w-0 flex-1 font-semibold tracking-wider uppercase"
+            placeholder="Ex.: ART40"
+            autoComplete="off"
+            value={couponInput}
+            disabled={checkingCoupon}
+            onChange={(e) => {
+              setCouponInput(normalizeCode(e.target.value))
+              if (coupon) setCoupon(null)
+              setCouponMsg(null)
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return
+              e.preventDefault() // Enter aqui aplica o cupom, não envia o pedido
+              void applyCoupon(couponInput, onlyDigits(form.phone))
+            }}
+          />
+          {coupon ? (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setCoupon(null)
+                setCouponInput('')
+                setCouponMsg(null)
+              }}
+            >
+              <X size={15} /> Remover
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-outline"
+              disabled={couponInput.length < 3 || checkingCoupon}
+              onClick={() => void applyCoupon(couponInput, onlyDigits(form.phone))}
+            >
+              {checkingCoupon ? <Loader2 size={17} className="animate-spin" /> : 'Aplicar'}
+            </button>
+          )}
+        </div>
+        {couponMsg && (
+          <p className={`mt-2 flex items-center gap-1.5 text-sm ${couponMsg.ok ? 'text-emerald-400' : 'text-pink'}`} role="status">
+            {couponMsg.ok && <Check size={15} />} {couponMsg.text}
+          </p>
+        )}
+        {coupon && (
+          <p className="mt-1 text-sm">
+            <span className="text-mute">Com o cupom: </span>
+            <strong className="font-semibold">
+              {evaluation ? `a partir de ${formatBRL(shown.low)}` : formatPriceRange(shown.low, shown.high)}
+            </strong>{' '}
+            <span className="text-mute line-through">
+              {evaluation ? formatBRL(estimate.low) : formatPriceRange(estimate.low, estimate.high)}
+            </span>
+            {!evaluation && <span className="text-mute"> · sinal {formatBRL(shown.deposit)}</span>}
+          </p>
+        )}
       </section>
 
       {error && (

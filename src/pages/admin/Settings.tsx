@@ -22,7 +22,7 @@ function Panel({ title, description, children }: { title: string; description?: 
   )
 }
 
-const STUDIO_FIELDS: { key: keyof StudioInfo; label: string; placeholder?: string; hint?: string }[] = [
+const STUDIO_FIELDS: { key: Exclude<keyof StudioInfo, 'promo' | 'couponPopup'>; label: string; placeholder?: string; hint?: string }[] = [
   { key: 'name', label: 'Nome do estúdio' },
   { key: 'artist', label: 'Tatuador' },
   { key: 'email', label: 'E-mail' },

@@ -53,6 +53,26 @@ export interface PricingConfig {
   settings: PricingSettings
 }
 
+/** Visual do banner de promoção (sempre dentro da paleta do estúdio). */
+export type PromoTheme = 'gold' | 'rave' | 'fire' | 'xmas' | 'newyear' | 'easter'
+
+/** Banner de promoção editável (Black Friday, Natal...). */
+export interface PromoBanner {
+  active: boolean
+  title: string
+  /** % de desconto em destaque (0 = não mostra o número) */
+  percent: number
+  text: string
+  ctaLabel: string
+  ctaLink: 'simulator' | 'booking' | 'whatsapp'
+  theme: PromoTheme
+  /** "YYYY-MM-DD"; vazio = sem data (começa já / não termina) */
+  startsOn: string
+  endsOn: string
+  showHome: boolean
+  showStrip: boolean
+}
+
 export interface StudioInfo {
   name: string
   artist: string
@@ -64,6 +84,34 @@ export interface StudioInfo {
   pixKey?: string
   address: string
   city: string
+  /** Banner de promoção do site (editável na aba Promoções) */
+  promo?: PromoBanner
+  /** Popup do cupom (editável na aba Promoções) */
+  couponPopup?: CouponPopup
+}
+
+/** Popup que oferece um cupom ao visitante, com timer individual. */
+export interface CouponPopup {
+  active: boolean
+  /** Código do cupom oferecido (precisa existir e estar ativo na lista de cupons) */
+  code: string
+  title: string
+  text: string
+  /** Minutos do timer, contados a partir de quando o visitante vê o popup */
+  timerMinutes: number
+  /** Segundos navegando antes do popup aparecer */
+  delaySeconds: number
+}
+
+/** Cupom de desconto cadastrado pelo artista. */
+export interface Coupon {
+  code: string
+  percent: number
+  active: boolean
+  starts_on: string | null
+  ends_on: string | null
+  note: string | null
+  created_at?: string
 }
 
 export interface ScheduleConfig {
@@ -120,6 +168,8 @@ export interface Estimate {
   /** Algum local acima da maior faixa: valor precisa ser avaliado pessoalmente. */
   oversized: boolean
   items: EstimateItem[]
+  /** Valores antes do cupom (só quando um cupom foi aplicado) */
+  original?: { low: number; high: number; value: number; deposit: number }
 }
 
 /** Sessão com data, ou pedido de avaliação (cobertura, reforma, fechamento): sem data até o artista agendar. */
@@ -154,6 +204,8 @@ export interface Booking {
   cover?: CoverType | null
   /** Foto de referência: caminho no armazenamento privado (ou imagem local no modo sem banco) */
   referencePath?: string | null
+  /** Cupom usado no pedido (o % é sempre o oficial, conferido pelo banco) */
+  coupon?: { code: string; percent: number } | null
   /** Quem criou: o cliente pelo site, ou o artista pelo painel ("studio"). Ausente = cliente. */
   origin?: 'client' | 'studio'
 }

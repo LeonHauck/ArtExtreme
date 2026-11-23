@@ -22,6 +22,7 @@ import { formatBRL } from '@/lib/format'
 import { startingPrice } from '@/lib/pricing'
 import { ARTIST, ASEPSIS, AWARDS, BIO, CARE_AVOID, CARE_GUIDE, TIMELINE } from '@/data/content'
 import { usePortfolioWorks } from '@/hooks/usePortfolioWorks'
+import { PromoHero } from '@/components/promo/PromoBanner'
 import { WorksCarousel } from '@/components/WorksCarousel'
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -511,6 +512,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <PromoHero />
       <StyleMarquee />
       <Specialties />
       <Artist />

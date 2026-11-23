@@ -177,3 +177,33 @@ input[type='range'].range::-webkit-slider-thumb {
 input[type='range'].range::-moz-range-thumb {
   @apply h-5 w-5 rounded-full border-2 border-ink bg-bone;
 }
+
+/* ─── Banners temáticos (Natal, Ano Novo, Páscoa) ─────────────────────── */
+@keyframes promo-twinkle {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 6px currentColor); }
+  50% { opacity: 0.25; filter: none; }
+}
+@keyframes promo-snow {
+  from { transform: translate3d(0, -12px, 0); }
+  to { transform: translate3d(var(--drift, 12px), var(--fall, 340px), 0); }
+}
+@keyframes promo-firework {
+  0% { transform: scale(0.15); opacity: 0; }
+  12% { opacity: 1; }
+  65% { opacity: 0.85; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+@keyframes promo-bob {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-7px) rotate(3deg); }
+}
+.promo-twinkle { animation: promo-twinkle 1.6s ease-in-out infinite; }
+.promo-snow { animation: promo-snow linear infinite; }
+.promo-firework { animation: promo-firework 2.6s ease-out infinite; transform-origin: center; }
+.promo-bob { animation: promo-bob 3.2s ease-in-out infinite; transform-origin: bottom center; }
+
+/* Quem pediu menos movimento no aparelho vê os enfeites parados */
+@media (prefers-reduced-motion: reduce) {
+  .promo-twinkle, .promo-snow, .promo-firework, .promo-bob { animation: none; }
+  .promo-snow { display: none; }
+}

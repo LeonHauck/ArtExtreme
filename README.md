@@ -101,6 +101,9 @@ Ele é fascinado por tecnologia (os desenhos nascem no Photoshop, Concepts e Art
 ### Para o Mike (`/admin`)
 
 - 🔐 **Login com e-mail e senha** (Enter já entra, mesmo com a senha salva no navegador).
+- 🏷️ **Banner de promoção editável** (aba Promoções): título, % de desconto, texto, botão, datas de início e fim com contagem regressiva e modelos prontos. 6 visuais: Dourado, Neon roxo e Fogo, e os temáticos **Natal** (pisca-pisca, neve e gorro), **Ano Novo** (fogos) e **Páscoa** (coelho e ovinhos), com animação que respeita quem prefere menos movimento.
+- 🎟️ **Cupons de desconto**: o Mike cria o código (ex.: ART40 = 40%), validade e pausa quando quiser; o cliente aplica no final do agendamento e já vê o valor com desconto; cada WhatsApp usa cada cupom uma vez (regra garantida pelo banco).
+- ⏳ **Popup do cupom** com timer individual por visitante, totalmente editável, e botão "Usar meu cupom" que já leva o código para o agendamento.
 - 📅 **Calendário do mês** na Agenda (alterna com a lista): cada dia mostra horário e nome dos clientes, barra de ocupação, "lotado" e dias fechados; tocando no dia, aparecem as janelas livres, os cards completos e o botão "Agendar neste dia".
 - ➕ **Agendar pelo painel**: o Mike marca o horário de alguém direto na Agenda (confirmado, aguardando sinal ou uma sessão que já aconteceu), com a estimativa da tabela, os horários livres do dia e valor combinado.
 - 🔗 **Compartilhar o site** com 1 toque, pelo painel ou pelo rodapé (menu nativo do celular, copiar link ou WhatsApp).
@@ -285,6 +288,8 @@ npm run dev                  # http://localhost:5173
 - [x] **Triagem**: primeira tattoo, cobertura/reforma e pedido de avaliação com foto
 - [x] **Agendamento pelo painel**, braço dividido em lado de dentro e de fora, e botão de compartilhar
 - [x] **Calendário do mês** com ocupação, dias lotados e janelas livres
+- [x] **Banner de promoção** editável com contagem regressiva
+- [x] **Cupons de desconto** com popup, timer e uso único por cliente
 
 <br>
 

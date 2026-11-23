@@ -4,6 +4,8 @@ import { CalendarDays, Home, Mail, MapPin, ScanLine } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { InstallAppButton } from '@/components/InstallAppButton'
 import { ShareButton } from '@/components/ShareButton'
+import { PromoStrip } from '@/components/promo/PromoBanner'
+import { CouponPopup } from '@/components/promo/CouponPopup'
 import { InstagramIcon, WhatsAppIcon } from '@/components/ui/BrandIcons'
 import { NeonRule } from '@/components/ui/Ornament'
 import { useStudio } from '@/store/studio'
@@ -182,6 +184,8 @@ export function SiteLayout() {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      <PromoStrip />
+      <CouponPopup />
       <Header />
       <main className="flex-1">
         <Outlet />

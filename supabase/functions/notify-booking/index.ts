@@ -49,6 +49,8 @@ interface BookingRow {
   first_tattoo?: boolean | null
   cover?: 'cover' | 'rework' | null
   origin?: 'client' | 'studio' | null
+  coupon_code?: string | null
+  coupon_percent?: number | null
   tattoo?: { placementLabels?: string[]; styleName?: string }
 }
 
@@ -71,6 +73,7 @@ export function bookingPayload(b: BookingRow): Payload {
     places.slice(0, 3).join(', ') + (places.length > 3 ? ` +${places.length - 3}` : ''),
     b.tattoo?.styleName,
     b.first_tattoo ? '1ª tattoo ✦' : null,
+    b.coupon_code ? `cupom ${b.coupon_code}${b.coupon_percent ? ` −${b.coupon_percent}%` : ''}` : null,
   ]
     .filter(Boolean)
     .join(' · ')

@@ -3,6 +3,7 @@ import { busyFromBookings, type BusySlot } from './schedule'
 import { useStudio } from '@/store/studio'
 import type { Booking, BookingStatus, BookingKind, CoverType } from '@/types'
 import { removeReference } from './referenceRepo'
+import { CouponError } from './coupons'
 
 /**
  * Acesso aos agendamentos. Com Supabase, tudo vai para o banco (e o artista vê
@@ -36,6 +37,8 @@ interface BookingRow {
   cover?: CoverType | null
   reference_path?: string | null
   origin?: 'client' | 'studio' | null
+  coupon_code?: string | null
+  coupon_percent?: number | null
 }
 
 const fromRow = (r: BookingRow): Booking => ({
@@ -54,6 +57,7 @@ const fromRow = (r: BookingRow): Booking => ({
   cover: r.cover ?? null,
   referencePath: r.reference_path ?? null,
   origin: r.origin ?? 'client',
+  coupon: r.coupon_code && r.coupon_percent ? { code: r.coupon_code, percent: r.coupon_percent } : null,
 })
 
 const toRow = (b: Booking) => ({
@@ -73,6 +77,8 @@ const toRow = (b: Booking) => ({
   cover: b.cover ?? null,
   reference_path: b.referencePath ?? null,
   origin: b.origin ?? 'client',
+  // Só manda o cupom quando existe (banco sem a coluna continua aceitando o resto)
+  ...(b.coupon ? { coupon_code: b.coupon.code, coupon_percent: b.coupon.percent } : {}),
   final_price: b.finalPrice ?? null,
 })
 
@@ -111,6 +117,8 @@ export async function createBooking(b: Booking): Promise<void> {
   }
   if (error) {
     if (error.code === 'P0001' || /indispon/i.test(error.message)) throw new SlotTakenError()
+    // Cupom recusado pelo banco (inválido, expirado ou já usado por esse WhatsApp)
+    if (error.code === 'P0002') throw new CouponError(error.message || 'Cupom inválido')
     throw error
   }
 }

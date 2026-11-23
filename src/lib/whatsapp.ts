@@ -20,6 +20,7 @@ export function bookingMessageToStudio(b: Booking): string {
       ? `*Avaliação:* ${b.cover ? COVER_LABEL[b.cover] : 'Projeto grande / fechamento'}`
       : `*Data:* ${formatDateLong(b.date)} às ${b.time}`,
     b.firstTattoo ? `*É minha primeira tattoo!* ✦` : null,
+    b.coupon ? `*Cupom:* ${b.coupon.code} (−${b.coupon.percent}%)` : null,
     `*Estilo:* ${t.styleName}${t.color ? ' (colorida)' : ' (preto e cinza)'}`,
     t.placements.length > 1 ? `*Locais:*` : `*Local:*`,
     ...t.placements.map((p, i) => `• ${t.placementLabels[i] ?? p.areaId}: ~${p.sizeCm} cm`),
@@ -63,7 +64,7 @@ export function clientMessage(kind: ClientMessageKind, b: Booking, studio: Studi
         ``,
         `Recebi seu pedido para *${when}*:`,
         `• ${t.styleName}${t.color ? ' colorida' : ''} · ${places}`,
-        `• Estimativa: ${formatPriceRange(b.estimate.low, b.estimate.high, ' a ')}`,
+        `• Estimativa: ${formatPriceRange(b.estimate.low, b.estimate.high, ' a ')}${b.coupon ? ` (já com o cupom ${b.coupon.code}, −${b.coupon.percent}%)` : ''}`,
         ``,
         `Para garantir o horário, o sinal é de *${formatBRL(b.estimate.deposit)}* (abatido no valor final).`,
         studio.pixKey ? `Pix: *${studio.pixKey}*` : null,

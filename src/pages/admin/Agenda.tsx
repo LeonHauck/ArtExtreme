@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, CalendarPlus, Check, CheckCheck, ClipboardCheck, ImageOff, Inbox, List, Loader2, Pencil, RefreshCw, Sparkles, Trash2, X } from 'lucide-react'
+import { CalendarDays, CalendarPlus, TicketPercent, Check, CheckCheck, ClipboardCheck, ImageOff, Inbox, List, Loader2, Pencil, RefreshCw, Sparkles, Trash2, X } from 'lucide-react'
 import {
   deleteBooking,
   listBookings,
@@ -88,6 +88,11 @@ function TriageTags({ b }: { b: Booking }) {
       {b.cover && (
         <span className="rounded-full border border-pink/40 bg-pink/10 px-2 py-0.5 text-[0.7rem] font-medium text-pink">
           {COVER_LABEL[b.cover]}
+        </span>
+      )}
+      {b.coupon && (
+        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[0.7rem] font-semibold text-emerald-400">
+          <TicketPercent size={11} /> {b.coupon.code} −{b.coupon.percent}%
         </span>
       )}
       {big && (
@@ -343,6 +348,9 @@ function BookingCard({ b, setStatus, finish, schedule, editSchedule, remove }: {
               <span className="text-violet-light">
                 {formatPriceRange(b.estimate.low, b.estimate.high)}
               </span>
+              {b.estimate.original && (
+                <span className="text-mute line-through"> {formatPriceRange(b.estimate.original.low, b.estimate.original.high)}</span>
+              )}
               <span className="text-mute"> · sinal {formatBRL(b.estimate.deposit)}</span>
             </p>
           )}

@@ -127,6 +127,11 @@ SQL Editor → cole e rode [`reports.sql`](reports.sql). Ele cria o campo do **v
 
 SQL Editor → cole e rode [`errors.sql`](errors.sql). Quando o app der erro no aparelho de alguém, a mensagem fica em **Table Editor → `app_errors`** (sem dados pessoais: mensagem, página, tipo de aparelho e se é o app instalado). Sem essa tabela o app funciona normalmente, só não registra.
 
+## 12. Cupons de desconto
+
+1. SQL Editor → cole e rode [`coupons.sql`](coupons.sql). Cria a tabela de cupons (só o artista vê a lista), a validação do código e a regra de **um uso por WhatsApp** (pedido cancelado libera de novo).
+2. (Opcional) Edge Functions → `notify-booking` → **Code** → cole de novo [`functions/notify-booking/index.ts`](functions/notify-booking/index.ts) → **Deploy**, para a notificação mostrar o cupom usado.
+
 ## O que cada um pode fazer
 
 | | Visitante | Administrador |
@@ -144,5 +149,7 @@ SQL Editor → cole e rode [`errors.sql`](errors.sql). Quando o app der erro no 
 | Criar agendamento confirmado ou em qualquer data | ❌ | ✅ |
 | Registrar erro do app (só gravar) | ✅ | ✅ |
 | Ver e apagar o registro de erros | ❌ | ✅ |
+| Validar um código de cupom | ✅ | ✅ |
+| Ver, criar, pausar e apagar cupons | ❌ | ✅ |
 
 Dois pedidos ativos no mesmo horário são bloqueados pelo próprio banco.

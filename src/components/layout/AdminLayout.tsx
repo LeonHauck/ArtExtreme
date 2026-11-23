@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { ArrowLeft, CalendarCheck, ChartColumn, Check, CloudOff, ExternalLink, Images, Loader2, Lock, LogOut, RotateCw, Settings, Tags } from 'lucide-react'
+import { ArrowLeft, BadgePercent, CalendarCheck, ChartColumn, Check, CloudOff, ExternalLink, Images, Loader2, Lock, LogOut, RotateCw, Settings, Tags } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { InstallAppButton } from '@/components/InstallAppButton'
 import { ShareButton } from '@/components/ShareButton'
@@ -16,6 +16,7 @@ import { endAdminSession, isAdminSession, startAdminSession } from '@/lib/auth'
 const TABS = [
   { to: '/admin', label: 'Agenda', icon: CalendarCheck, end: true },
   { to: '/admin/precos', label: 'Preços', icon: Tags, end: false },
+  { to: '/admin/promocoes', label: 'Promoções', icon: BadgePercent, end: false },
   { to: '/admin/portfolio', label: 'Portfólio', icon: Images, end: false },
   { to: '/admin/relatorios', label: 'Relatórios', icon: ChartColumn, end: false },
   { to: '/admin/config', label: 'Configurações', icon: Settings, end: false },
