@@ -77,7 +77,78 @@ export function SantaHat({ className = '' }: { className?: string }) {
   )
 }
 
-const BURST_COLORS = ['#ffd23f', '#ff4fd8', '#d16bff', '#ff8a1f']
+/** Braço em cápsula (contorno + preenchimento), no traço dos mascotes. */
+function limb(x1: number, y1: number, x2: number, y2: number, w: number, fill: string) {
+  return (
+    <>
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#1c1418" strokeWidth={w + 6.4} strokeLinecap="round" />
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={fill} strokeWidth={w} strokeLinecap="round" />
+    </>
+  )
+}
+
+/**
+ * Papai Noel tatuado (desenho próprio, traço de flash de tattoo): manga
+ * arregaçada e os dois antebraços tatuados (coração e estrela), braços para baixo.
+ */
+export function TattooSanta({ className = '' }: { className?: string }) {
+  const line = '#1c1418'
+  const red = '#dc2639'
+  const redDark = '#a5162a'
+  const fur = '#f8f5fc'
+  const skin = '#f5c6a5'
+  const glove = '#3b3238'
+  return (
+    <svg className={className} viewBox="0 0 200 262" aria-hidden>
+      <g stroke={line} strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round">
+        {/* Pernas e botas */}
+        <rect x="62" y="224" width="28" height="22" fill={redDark} />
+        <rect x="102" y="224" width="28" height="22" fill={redDark} />
+        <path d="M56 244 H92 V254 Q92 258 88 258 H52 Q48 258 50 252 Q52 244 56 244 Z" fill={line} />
+        <path d="M100 244 H136 Q140 244 142 252 Q144 258 140 258 H104 Q100 258 100 254 Z" fill={line} />
+        {/* Casaco */}
+        <path d="M60 146 C 44 166, 40 206, 50 228 L 142 228 C 152 206, 148 166, 132 146 Z" fill={red} />
+        <rect x="88" y="150" width="16" height="74" fill={fur} />
+        <rect x="46" y="218" width="100" height="14" rx="7" fill={fur} />
+        <rect x="46" y="194" width="100" height="12" fill={line} />
+        <rect x="86" y="191" width="20" height="18" rx="2" fill="none" stroke="#f5c542" strokeWidth="3.5" />
+        {/* Braços para baixo, mangas arregaçadas e antebraços tatuados */}
+        {/* Antebraço por baixo, manga vermelha inteira por cima, punho branco no fim da manga */}
+        {limb(55, 176, 42, 212, 20, skin)}
+        {limb(66, 150, 58, 170, 24, red)}
+        <rect x="-15" y="-5.5" width="30" height="11" rx="5.5" transform="translate(55 180) rotate(20)" fill={fur} />
+        {limb(137, 176, 150, 212, 20, skin)}
+        {limb(126, 150, 134, 170, 24, red)}
+        <rect x="-15" y="-5.5" width="30" height="11" rx="5.5" transform="translate(137 180) rotate(-20)" fill={fur} />
+        {/* Tattoos: coração no braço esquerdo, estrela no direito */}
+        <path d="M0 -2 c -2 -5, -10 -4, -9 2 c 1 4, 6 7, 9 10 c 3 -3, 8 -6, 9 -10 c 1 -6, -7 -7, -9 -2 Z" transform="translate(49 196) rotate(20) scale(0.75)" fill={red} strokeWidth="2.2" />
+        <path d="M0 -6 l 1.8 3.8 l 4.2 .5 l -3.1 2.9 l .8 4.1 l -3.7 -2 l -3.7 2 l .8 -4.1 l -3.1 -2.9 l 4.2 -.5 Z" transform="translate(144 197) rotate(-20)" fill={line} strokeWidth="1" />
+        <circle cx="41" cy="217" r="10" fill={glove} />
+        <circle cx="151" cy="217" r="10" fill={glove} />
+        {/* Rosto */}
+        <ellipse cx="96" cy="96" rx="28" ry="24" fill={skin} />
+        {/* Barba */}
+        <path
+          d="M64 96 C 54 108, 52 128, 60 142 C 64 156, 76 166, 86 164 C 92 172, 102 172, 108 164 C 118 166, 130 156, 134 142 C 142 128, 140 108, 128 96 C 122 112, 70 112, 64 96 Z"
+          fill={fur}
+        />
+        <path d="M84 120 Q 96 136 108 120 Z" fill="#7f1d2d" />
+        <path d="M96 110 C 86 103, 73 105, 68 114 C 77 119, 90 117, 96 112 C 102 117, 115 119, 124 114 C 119 105, 106 103, 96 110 Z" fill={fur} />
+        <circle cx="96" cy="102" r="7" fill="#ee9b8a" />
+        <path d="M78 92 Q 84 85 90 92 M102 92 Q 108 85 114 92" fill="none" strokeWidth="3.4" />
+        {/* Gorro */}
+        <path d="M54 70 C 60 34, 96 14, 132 22 C 152 27, 166 42, 168 60 C 160 54, 150 50, 140 52 L 140 70 Z" fill={red} />
+        <rect x="48" y="62" width="98" height="18" rx="9" fill={fur} />
+        <circle cx="168" cy="64" r="11" fill={fur} />
+      </g>
+      {/* Bochechas */}
+      <circle cx="76" cy="101" r="6" fill="#f28b8b" opacity="0.75" />
+      <circle cx="116" cy="101" r="6" fill="#f28b8b" opacity="0.75" />
+    </svg>
+  )
+}
+
+const BURST_COLORS =['#ffd23f', '#ff4fd8', '#d16bff', '#ff8a1f']
 
 /** Fogos de artifício estourando em pontos diferentes. */
 function Fireworks() {
@@ -124,22 +195,58 @@ function Fireworks() {
   )
 }
 
-/** Coelho estilizado em traço neon. */
-export function Bunny({ className = '' }: { className?: string }) {
+/**
+ * Coelho tatuador (desenho próprio, mesmo traço do Papai Noel): bandana,
+ * piscadinha e os dois braços tatuados (coração e cenoura), para baixo.
+ */
+export function TattooBunny({ className = '' }: { className?: string }) {
+  const line = '#1c1418'
+  const fur = '#f8f5fc'
+  const pink = '#ffb3d9'
   return (
-    <svg className={className} viewBox="0 0 100 120" fill="none" aria-hidden>
-      <g stroke="#ff4fd8" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M36 52 C 26 30, 26 8, 34 4 C 42 0, 46 24, 46 48" />
-        <path d="M64 52 C 74 30, 76 8, 68 4 C 60 0, 54 24, 54 48" />
-        <path d="M37 40 C 34 28, 34 16, 36 12" stroke="#ffd23f" strokeWidth="2" opacity="0.8" />
-        <path d="M63 40 C 66 28, 66 16, 64 12" stroke="#ffd23f" strokeWidth="2" opacity="0.8" />
-        <ellipse cx="50" cy="74" rx="27" ry="24" fill="rgba(255,79,216,0.12)" />
-        <path d="M44 80 Q 50 86 56 80" />
-        <path d="M24 76 L 38 78 M24 84 L 38 82 M76 76 L 62 78 M76 84 L 62 82" stroke="#f3eefa" strokeWidth="1.6" opacity="0.7" />
+    <svg className={className} viewBox="0 0 200 262" aria-hidden>
+      <g stroke={line} strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round">
+        {/* Orelhas (uma dobrada) */}
+        <path d="M70 76 C 56 44, 58 8, 75 5 C 92 2, 93 42, 88 76 Z" fill={fur} />
+        <path d="M75 64 C 68 42, 69 18, 76 15 C 84 14, 84 42, 82 64 Z" fill={pink} strokeWidth="2" />
+        <path d="M104 76 C 103 46, 112 20, 130 17 C 148 14, 154 30, 140 36 C 127 40, 121 54, 121 78 Z" fill={fur} />
+        <path d="M110 68 C 110 48, 116 30, 129 27 C 138 26, 138 31, 131 33 C 120 37, 115 50, 115 68 Z" fill={pink} strokeWidth="2" />
+        {/* Pés */}
+        <ellipse cx="74" cy="242" rx="21" ry="11" fill={fur} />
+        <ellipse cx="118" cy="242" rx="21" ry="11" fill={fur} />
+        {/* Corpo e barriga */}
+        <path d="M66 140 C 52 160, 50 206, 60 230 L 132 230 C 142 206, 140 160, 126 140 Z" fill={fur} />
+        <ellipse cx="96" cy="192" rx="24" ry="30" fill="#fde4f0" strokeWidth="2.2" />
+        {/* Braços para baixo, tatuados */}
+        {limb(70, 150, 52, 200, 22, fur)}
+        {limb(122, 150, 140, 200, 22, fur)}
+        {/* Tattoo: coração no braço esquerdo */}
+        <path d="M0 -2 c -2 -5, -10 -4, -9 2 c 1 4, 6 7, 9 10 c 3 -3, 8 -6, 9 -10 c 1 -6, -7 -7, -9 -2 Z" transform="translate(61 176) rotate(20) scale(0.8)" fill="#ff4fd8" strokeWidth="2" />
+        {/* Tattoo: cenoura no braço direito */}
+        <g transform="translate(131 178) rotate(-20)">
+          <path d="M-4 -8 L 4 -8 L 0 10 Z" fill="#ff8a1f" strokeWidth="1.6" />
+          <path d="M0 -8 l -4 -6 M0 -8 l 0 -7 M0 -8 l 4 -6" fill="none" stroke="#16a34a" strokeWidth="2" />
+        </g>
+        <circle cx="50" cy="204" r="10" fill={fur} />
+        <circle cx="142" cy="204" r="10" fill={fur} />
+        {/* Cabeça */}
+        <ellipse cx="96" cy="102" rx="36" ry="32" fill={fur} />
+        {/* Bandana */}
+        <path d="M66 128 Q 96 146 126 128 L 122 140 Q 96 156 70 140 Z" fill="#ff4fd8" />
+        <path d="M112 144 L 124 158 L 104 152 Z" fill="#ff4fd8" strokeWidth="2.4" />
+        {/* Olho aberto e piscadinha */}
+        <circle cx="82" cy="98" r="5.5" fill={line} stroke="none" />
+        <circle cx="84" cy="96" r="1.8" fill="#fff" stroke="none" />
+        <path d="M104 99 Q 110 92 116 99" fill="none" strokeWidth="3.4" />
+        {/* Focinho, dentinhos e bigodes */}
+        <path d="M91 108 L 101 108 L 96 114 Z" fill="#ff7ab8" strokeWidth="2.2" />
+        <path d="M96 114 Q 96 119 89 120 M96 114 Q 96 119 103 120" fill="none" strokeWidth="2.4" />
+        <path d="M92 120 H100 V127 Q100 128 99 128 H93 Q92 128 92 127 Z M96 120 V128" fill="#fff" strokeWidth="2" />
+        <path d="M60 106 L 76 108 M60 114 L 76 112 M132 106 L 116 108 M132 114 L 116 112" fill="none" strokeWidth="1.6" />
       </g>
-      <circle cx="40" cy="70" r="3.2" fill="#f3eefa" />
-      <circle cx="60" cy="70" r="3.2" fill="#f3eefa" />
-      <path d="M47 77 L 53 77 L 50 81 Z" fill="#ffd23f" />
+      {/* Bochechas */}
+      <circle cx="74" cy="110" r="6" fill="#f28b8b" opacity="0.7" />
+      <circle cx="118" cy="110" r="6" fill="#f28b8b" opacity="0.7" />
     </svg>
   )
 }
@@ -158,9 +265,8 @@ function Egg({ color, className = '', style }: { color: string; className?: stri
 function Easter() {
   return (
     <>
-      <Bunny className="promo-bob absolute top-3 right-3 h-24 w-20 opacity-90 sm:right-6 md:h-20 md:w-16" />
-      {/* Ovinhos no canto de baixo (no celular o botão ocupa esse espaço) */}
-      <div className="absolute right-6 bottom-2 hidden items-end gap-1 md:flex">
+      {/* Ovinhos embaixo do desconto (no celular o botão ocupa esse espaço) */}
+      <div className="absolute bottom-3 left-8 hidden items-end gap-1 md:flex">
         <Egg color="#ffd23f" className="h-8 w-6 -rotate-12 opacity-80" />
         <Egg color="#d16bff" className="h-10 w-8 rotate-6 opacity-80" />
         <Egg color="#ff8a1f" className="h-7 w-5 rotate-12 opacity-70" />

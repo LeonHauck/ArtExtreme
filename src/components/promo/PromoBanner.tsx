@@ -1,11 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
 import { Link } from 'react-router'
 import { ArrowRight, Check, Copy, Flame, X } from 'lucide-react'
 import { useStudio } from '@/store/studio'
 import { formatCountdown, getPromo, isPromoLive, promoCountdown, promoHref, promoKey, type Countdown } from '@/lib/promo'
 import { SAVED_COUPON_KEY, checkCoupon } from '@/lib/coupons'
 import type { PromoBanner, PromoTheme } from '@/types'
-import { PromoDecor, SantaHat } from './PromoDecor'
+import { PromoDecor, SantaHat, TattooBunny, TattooSanta } from './PromoDecor'
+
+/** Mascotes tatuados dos temas de data comemorativa. */
+const MASCOTS: Partial<Record<PromoTheme, ComponentType<{ className?: string }>>> = {
+  xmas: TattooSanta,
+  easter: TattooBunny,
+}
 
 /** Três visuais, todos dentro da paleta do estúdio. */
 export const PROMO_THEMES: Record<PromoTheme, { label: string; box: string; glowA: string; glowB: string; accent: string; cta: string; strip: string; chip: string }> = {
@@ -196,6 +202,7 @@ export function PromoHero({
   const ended = countdown !== null && countdown.totalMs === 0
   const graffiti = promo.theme === 'blackfriday'
   const percent = linked?.percent ?? promo.percent
+  const Mascot = MASCOTS[promo.theme]
 
   return (
     <section className={preview ? '' : 'mx-auto max-w-6xl px-4 pt-14 sm:px-6'} aria-label={`Promoção ${promo.title}`}>
@@ -203,6 +210,7 @@ export function PromoHero({
         <div className={`pointer-events-none absolute -top-24 -left-16 h-72 w-72 rounded-full blur-3xl ${t.glowA}`} />
         <div className={`pointer-events-none absolute -right-20 -bottom-28 h-72 w-72 rounded-full blur-3xl ${t.glowB}`} />
         <PromoDecor theme={promo.theme} />
+        {Mascot && <Mascot className="promo-bob pointer-events-none absolute top-7 right-3 h-36 w-28 md:hidden" />}
         <div className="relative grid items-center gap-6 md:grid-cols-[auto_1fr_auto] md:gap-10">
           {percent > 0 &&
             (graffiti ? (
@@ -212,7 +220,7 @@ export function PromoHero({
                 <span className="ml-1 align-top text-3xl sm:text-4xl">OFF</span>
               </p>
             ) : (
-              <p className={`relative font-display leading-none tracking-wide ${t.accent} ${promo.theme === 'xmas' ? 'pt-9 sm:pt-11' : ''}`}>
+              <p className={`relative font-display leading-none tracking-wide ${t.accent} ${promo.theme === 'xmas' ? 'pt-9 sm:pt-11' : ''} ${promo.theme === 'easter' ? 'max-md:min-h-[7.5rem]' : ''}`}>
                 {promo.theme === 'xmas' && <SantaHat className="absolute top-0 -left-3 h-12 w-14 -rotate-[16deg] sm:-left-4 sm:h-14 sm:w-16" />}
                 <span className="text-7xl sm:text-8xl">{percent}%</span>
                 <span className="ml-2 align-top text-3xl sm:text-4xl">OFF</span>
@@ -246,7 +254,15 @@ export function PromoHero({
               </div>
             )}
           </div>
-          <Cta promo={promo} couponCode={linked?.code} className={`btn w-full md:w-auto ${t.cta}`} />
+          {Mascot ? (
+            // Mascote do tema "apresentando" o botão (no celular ele fica no canto de cima)
+            <div className="flex flex-col items-stretch gap-2 md:items-center">
+              <Mascot className="promo-bob hidden h-44 w-34 md:block" />
+              <Cta promo={promo} couponCode={linked?.code} className={`btn w-full md:w-auto ${t.cta}`} />
+            </div>
+          ) : (
+            <Cta promo={promo} couponCode={linked?.code} className={`btn w-full md:w-auto ${t.cta}`} />
+          )}
         </div>
       </div>
     </section>
